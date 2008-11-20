@@ -2,9 +2,9 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:  2008 October 26th
+" Last Change:  2008 October 30th
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.29
+" Version:	1.30 BETA 1
 "
 "
 " Changes: 1.29		- Fixed php file detection for ResetOptions() used for
