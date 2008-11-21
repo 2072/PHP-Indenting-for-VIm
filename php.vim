@@ -364,7 +364,7 @@ endif
 " Only define the functions once per Vim session.
 if exists("*GetPhpIndent")
     call ResetPhpOptions()
-    finish " XXX
+"    finish " XXX
 endif
 
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
@@ -644,7 +644,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.28)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.30 BETA 1)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
@@ -1159,8 +1159,10 @@ function! GetPhpIndent()
 	elseif last_line =~ '^\s*'.s:blockstart
 	    let ind = ind + &sw
 
-	elseif last_line =~# defaultORcase
+	elseif last_line =~# defaultORcase && cline !~# defaultORcase
 	    let ind = ind + &sw
+	    "echo cline. "  --test 1--   " . ind
+	    "call getchar()
 
 	    " In all other cases if the last line isn't terminated indent 1
 	    " level higher but only if the last line wasn't already indented
@@ -1173,11 +1175,13 @@ function! GetPhpIndent()
 	    "	    been indented correctly already
 
 	"elseif cline !~ '^\s*{' && pline =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.defaultORcase
-	elseif pline =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . defaultORcase
+	elseif pline =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . defaultORcase && cline !~# defaultORcase
 
 	    "echo pline. "     " . ind
 	    "call getchar()
 	    let ind = ind + &sw
+	    "echo pline. "  --test 2--   " . ind
+	    "call getchar()
 	endif
 
     endif
