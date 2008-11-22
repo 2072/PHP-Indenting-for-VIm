@@ -2,9 +2,15 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:  2008 October 30th
+" Last Change:  2008 November 22nd
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.30 BETA 1
+" Version:	1.30
+"
+"
+" Changes: 1.29		- Fixed empty case/default identation again :/
+"			- The ResetOptions() function will be called each time
+"			  the ftplugin call this script, previously it was
+"			  executed on BufWinEnter and Syntax events.
 "
 "
 " Changes: 1.29		- Fixed php file detection for ResetOptions() used for
@@ -364,7 +370,7 @@ endif
 " Only define the functions once per Vim session.
 if exists("*GetPhpIndent")
     call ResetPhpOptions()
-"    finish " XXX
+    finish " XXX
 endif
 
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
@@ -1121,8 +1127,9 @@ function! GetPhpIndent()
 
     " Indent blocks enclosed by {} or () (default indenting)
     if !LastLineClosed
-    "echo "start"
-    "call getchar()
+	"echo "start"
+	"call getchar()
+
 	" the last line isn't a .*; or a }$ line
 	" Indent correctly multilevel and multiline '(.*)' things
 
@@ -1134,8 +1141,8 @@ function! GetPhpIndent()
 		let ind = ind + &sw
 	    endif
 
-"    echo "43"
-"    call getchar()
+	    "    echo "43"
+	    "    call getchar()
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1 || cline !~# defaultORcase
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
@@ -1169,7 +1176,7 @@ function! GetPhpIndent()
 	    " for the same "code event"/reason. IE: if the line before the
 	    " last is terminated.
 	    "
-	    " 2nd possibility:
+	    " 2nd explanation:
 	    "	    - Test if the line before the previous is terminated or is
 	    "	    a default/case if yes indent else let since it must have
 	    "	    been indented correctly already
