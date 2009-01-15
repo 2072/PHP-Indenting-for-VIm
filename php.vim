@@ -7,7 +7,7 @@
 " Version:	1.30
 "
 "
-" Changes: 1.30		- Fixed empty case/default identation again :/
+" Changes: 1.30		- Fixed empty case/default indentation again :/
 "			- The ResetOptions() function will be called each time
 "			  the ftplugin calls this script, previously it was
 "			  executed on BufWinEnter and Syntax events.
@@ -240,18 +240,18 @@
 "	they are followed by a ';').
 "
 
-" NOTE: If you are editing file in Unix file format and that (by accident)
-" there are '\r' before new lines, this script won't be able to proceed
-" correctly and will make many mistakes because it won't be able to match
-" '\s*$' correctly.
-" So you have to remove those useless characters first with a command like:
+" NOTE: If you are editing files in Unix file format and that (by accident)
+"	there are '\r' before new lines, this script won't be able to proceed
+"	correctly and will make many mistakes because it won't be able to match
+"	'\s*$' correctly.
+"	So you have to remove those useless characters first with a command like:
 "
-" :%s /\r$//g
+"	:%s /\r$//g
 "
-" or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
-" silently remove them when VIM load this script (at each bufread).
-
-
+"	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
+"	silently remove them when VIM load this script (at each bufread).
+"
+"
 " Options: PHP_autoformatcomment = 0 to not enable autoformating of comment by
 "		    default, if set to 0, this script will let the 'formatoptions' setting intact.
 "
@@ -283,7 +283,7 @@
 "
 " Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
 "		    befaore 'case:' and 'default":' statement in switch blocks.
-
+"
 " Remove all the comments from this file:
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
 " }}}
@@ -650,7 +650,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.30 BETA 1)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.30)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
