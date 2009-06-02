@@ -324,6 +324,15 @@ else
     let b:PHP_autoformatcomment = 1
 endif
 
+"TODO: add this new option to the doc
+if exists("PHP_outdentphpescape")
+    let b:PHP_outdentphpescape = PHP_outdentphpescape
+else
+    let b:PHP_outdentphpescape = 1
+endif
+
+
+
 if exists("PHP_vintage_case_default_indent")
     let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
 else
@@ -855,13 +864,13 @@ function! GetPhpIndent()
     " Things always indented at col 1 (PHP delimiter: <?, ?>, Heredoc end) {{{
     " PHP start tags are always at col 1, useless to indent unless the end tag
     " is on the same line
-    if cline =~# '^\s*<?' && cline !~ '?>'
+    if cline =~# '^\s*<?' && cline !~ '?>' && b:PHP_outdentphpescape
 	return 0
     endif
 
     " PHP end tags are always at col 1, useless to indent unless if it's
     " followed by a start tag on the same line
-    if  cline =~ '^\s*?>' && cline !~# '<?'
+    if  cline =~ '^\s*?>' && cline !~# '<?' && b:PHP_outdentphpescape
 	return 0
     endif
 
