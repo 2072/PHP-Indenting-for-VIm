@@ -4,8 +4,10 @@
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Last Change:  2008 November 22nd
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.30
+" Version:	1.31a
 "
+
+" Changes: 1.31a	- Added a new option: HP_outdentphpescape (WIP)
 "
 " Changes: 1.30		- Fixed empty case/default indentation again :/
 "			- The ResetOptions() function will be called each time
