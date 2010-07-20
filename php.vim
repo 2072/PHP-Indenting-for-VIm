@@ -2,12 +2,12 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:  2008 November 22nd
+" Last Change:  2009 Jully 3rd
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
 " Version:	1.31a
 "
 
-" Changes: 1.31a	- Added a new option: HP_outdentphpescape (WIP)
+" Changes: 1.31a	- Added a new option: PHP_outdentphpescape (WIP)
 "
 " Changes: 1.30		- Fixed empty case/default indentation again :/
 "			- The ResetOptions() function will be called each time
@@ -661,7 +661,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.30)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.31a)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
