@@ -692,7 +692,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.31a)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.32)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
