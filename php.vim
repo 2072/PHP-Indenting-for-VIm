@@ -2,11 +2,16 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:  2009 Jully 3rd
+" Last Change:  2010 Jully 22nd
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.31a
+" Version:	1.32
 "
 
+" Changes: 1.32         - Added a new option: PHP_ANSI_indenting
+"                           NOTE: if you don't set PHP_vintage_case_default_indent,
+"                           setting PHP_ANSI_indenting will automagically set
+"                           PHP_vintage_case_default_indent to 1 for you
+"
 " Changes: 1.31a	- Added a new option: PHP_outdentphpescape (WIP)
 "
 " Changes: 1.30		- Fixed empty case/default indentation again :/
@@ -286,6 +291,21 @@
 " Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
 "		    befaore 'case:' and 'default":' statement in switch blocks.
 "
+" Options: PHP_ANSI_indenting: follow traditional ANSI-style indenting:
+"		    * indent before 'case:' and 'default":' statement in switch blocks
+"		    * braces stand on their own line
+"		    Example:
+"		    switch ($foo)
+"		    {
+"		        case "bar":
+"		        case "quux":
+"		        {
+"		        }
+"		        default:
+"		        {
+"		            default_behaviour();
+"		        }
+"		    }
 " Remove all the comments from this file:
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
 " }}}
@@ -333,12 +353,20 @@ else
     let b:PHP_outdentphpescape = 1
 endif
 
-
-
-if exists("PHP_vintage_case_default_indent")
-    let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
+if exists("PHP_ANSI_indenting")
+    let b:PHP_ANSI_indenting = PHP_ANSI_indenting
+    if exists("PHP_vintage_case_default_indent")
+        let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
+    else
+        let b:PHP_vintage_case_default_indent = 1
+    endif
 else
-    let b:PHP_vintage_case_default_indent = 0
+    let b:PHP_ANSI_indenting = 0
+    if exists("PHP_vintage_case_default_indent")
+        let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
+    else
+        let b:PHP_vintage_case_default_indent = 0
+    endif
 endif
 
 
@@ -595,8 +623,11 @@ function! IslinePHP (lnum, tofind) " {{{
 endfunction " }}}
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|else\)'
+if b:PHP_ANSI_indenting
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
+else
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
-
+endif
 " make sure the options needed for this script to work correctly are set here
 " for the last time. They could have been overridden by any 'onevent'
 " associated setting file...
