@@ -44,6 +44,10 @@ For example, with N = 1, this will give:
 (Notice the extra indent between the PHP container markers and the code)
 -------------
 
+To indent PHP tags as the surrounding code: >
+    :let g:PHP_outdentphpescape = 0
+-------------
+
 To automatically remove '\r' characters when the 'fileformat' is set to Unix: >
     :let g:PHP_removeCRwhenUnix = 1
 -------------
@@ -71,5 +75,35 @@ To indent 'case:' and 'default:' statements in switch() blocks: >
 
 (By default they are indented at the same level than the 'switch()' to avoid
 unnecessary indentation)
+-------------
+
+To follow traditional ANSI-style indenting: >
+    :let g:PHP_ANSI_indenting = 1
+
+- Indent before 'case:' and 'default":' statement in switch blocks.
+- Braces stand on their own line.
+
+    Example: >
+	    switch ($foo)
+	    {
+	        case "bar":
+	        case "quux":
+	        {
+	        }
+	        default:
+	        {
+	            default_behaviour();
+	        }
+	    }
+
+NOTE: If you don't set PHP_vintage_case_default_indent, setting
+      PHP_ANSI_indenting will automatically set
+      PHP_vintage_case_default_indent to 1 for you.
+
+Enabling this option requires a restart of VIm.
+
+
+
+
 
 vim:tw=78:ts=8:ft=help:norl:

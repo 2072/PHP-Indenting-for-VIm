@@ -4,15 +4,19 @@
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Last Change:  2010 Jully 22nd
 " Newsletter:   http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.32
+" Version:	1.32b
 "
-
+"
+"
+" Changes: 1.32b        - Added PHP_ANSI_indenting and PHP_outdentphpescape
+"                         options details to VIm documentation (:help php-indent).
+"
+"
 " Changes: 1.32         - Added a new option: PHP_ANSI_indenting
-"                           NOTE: if you don't set PHP_vintage_case_default_indent,
-"                           setting PHP_ANSI_indenting will automagically set
-"                           PHP_vintage_case_default_indent to 1 for you
 "
-" Changes: 1.31a	- Added a new option: PHP_outdentphpescape (WIP)
+"
+" Changes: 1.31a	- Added a new option: PHP_outdentphpescape to indent
+"                         PHP tags as the surrounding code.
 "
 " Changes: 1.30		- Fixed empty case/default indentation again :/
 "			- The ResetOptions() function will be called each time
@@ -288,10 +292,13 @@
 "			NOTE: The script will be a bit slower if you use this option because
 "			some optimizations won't be available.
 "
+"
+" Options: PHP_outdentphpescape = 0 (defaults to 1) to indent PHP tags as the surrounding code.
+"
 " Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
 "		    befaore 'case:' and 'default":' statement in switch blocks.
 "
-" Options: PHP_ANSI_indenting: follow traditional ANSI-style indenting:
+" Options: PHP_ANSI_indenting = 1 (defaults to 0) to follow traditional ANSI-style indenting:
 "		    * indent before 'case:' and 'default":' statement in switch blocks
 "		    * braces stand on their own line
 "		    Example:
@@ -306,6 +313,11 @@
 "		            default_behaviour();
 "		        }
 "		    }
+"
+"		    NOTE: if you don't set PHP_vintage_case_default_indent,
+"                         setting PHP_ANSI_indenting will automatically set
+"                         PHP_vintage_case_default_indent to 1 for you
+"
 " Remove all the comments from this file:
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
 " }}}
@@ -346,7 +358,6 @@ else
     let b:PHP_autoformatcomment = 1
 endif
 
-"TODO: add this new option to the doc
 if exists("PHP_outdentphpescape")
     let b:PHP_outdentphpescape = PHP_outdentphpescape
 else
@@ -692,7 +703,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.32)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.32b)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
