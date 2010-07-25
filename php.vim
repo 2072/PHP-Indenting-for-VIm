@@ -2,10 +2,15 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:	2010 Jully 22nd
+" Last Change:	2010 Jully 26th
 " Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.32b
+" Version:	1.33
 "
+"
+" Changes: 1.33		- Rewrote Switch(){case:default:} handling from
+"			  scratch in a simpler more logical and infallible way...
+"			- Removed PHP_ANSI_indenting which is no longer
+"		 	  needed.
 "
 "
 " Changes: 1.32b	- Added PHP_ANSI_indenting and PHP_outdentphpescape
@@ -298,25 +303,6 @@
 " Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
 "		    befaore 'case:' and 'default":' statement in switch blocks.
 "
-" Options: PHP_ANSI_indenting = 1 (defaults to 0) to follow traditional ANSI-style indenting:
-"		    * indent before 'case:' and 'default":' statement in switch blocks
-"		    * braces stand on their own line
-"		    Example:
-"		    switch ($foo)
-"		    {
-"			case "bar":
-"			case "quux":
-"			{
-"			}
-"			default:
-"			{
-"			    default_behaviour();
-"			}
-"		    }
-"
-"		    NOTE: if you don't set PHP_vintage_case_default_indent,
-"			  setting PHP_ANSI_indenting will automatically set
-"			  PHP_vintage_case_default_indent to 1 for you
 "
 " Remove all the comments from this file:
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
@@ -364,16 +350,11 @@ else
     let b:PHP_outdentphpescape = 1
 endif
 
-if exists("PHP_ANSI_indenting") && b:PHP_ANSI_indenting
-    let b:PHP_ANSI_indenting = 1
+
+if exists("PHP_vintage_case_default_indent") && PHP_vintage_case_default_indent
     let b:PHP_vintage_case_default_indent = 1
 else
-    let b:PHP_ANSI_indenting = 0
-    if exists("PHP_vintage_case_default_indent") && PHP_vintage_case_default_indent
-	let b:PHP_vintage_case_default_indent = 1
-    else
-	let b:PHP_vintage_case_default_indent = 0
-    endif
+    let b:PHP_vintage_case_default_indent = 0
 endif
 
 
@@ -736,7 +717,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.32b)'
+	    echom 'Large indenting detected, speed optimizations engaged (v1.33)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
