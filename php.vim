@@ -364,17 +364,13 @@ else
     let b:PHP_outdentphpescape = 1
 endif
 
-if exists("PHP_ANSI_indenting")
-    let b:PHP_ANSI_indenting = PHP_ANSI_indenting
-    if exists("PHP_vintage_case_default_indent")
-        let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
-    else
-        let b:PHP_vintage_case_default_indent = 1
-    endif
+if exists("PHP_ANSI_indenting") && b:PHP_ANSI_indenting
+    let b:PHP_ANSI_indenting = 1
+    let b:PHP_vintage_case_default_indent = 1
 else
     let b:PHP_ANSI_indenting = 0
-    if exists("PHP_vintage_case_default_indent")
-        let b:PHP_vintage_case_default_indent = PHP_vintage_case_default_indent
+    if exists("PHP_vintage_case_default_indent") && PHP_vintage_case_default_indent
+        let b:PHP_vintage_case_default_indent = 1
     else
         let b:PHP_vintage_case_default_indent = 0
     endif
@@ -420,12 +416,12 @@ endif
 " Only define the functions once per Vim session.
 if exists("*GetPhpIndent")
     call ResetPhpOptions()
-    "finish " XXX -- comment this line for easy dev
+    finish " XXX -- comment this line for easy dev
 endif
 
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
-setlocal debug=msg " XXX -- do not comment this line when modifying this file
+"setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
 
 function! GetLastRealCodeLNum(startline) " {{{
@@ -593,7 +589,7 @@ function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
     " if there was an else, then there is a if...
     if getline(beforeelse) !~# '^\s*if\>' && beforeelse>1 || s:iftoskip && beforeelse>1
 
-	if  s:iftoskip && getline(beforeelse) =~# '^\s*if\>'
+	if s:iftoskip && getline(beforeelse) =~# '^\s*if\>'
 	    let s:iftoskip = s:iftoskip - 1
 	endif
 
@@ -604,6 +600,42 @@ function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
     return beforeelse
 
 endfunction " }}}
+
+let s:defaultORcase = '^\s*\%(default\|case\).*:'
+
+function! FindTheSwitchIndent (lnum) " {{{
+    " Yes that's right, another very clever recursive function by the
+    " author of the famous FindTheIfOfAnElse()
+
+
+    let test = GetLastRealCodeLNum(a:lnum - 1)
+
+    if test <= 1
+        return indent(1) - &sw * b:PHP_vintage_case_default_indent
+    end
+
+    " A closing bracket? let skip the whole block to save some recursive calls
+    if getline(test) =~ '^\s*}'
+	let test = FindOpenBracket(test)
+
+	" Put us on the line above the block starter since if it's a switch,
+        " it's not the one we want.
+	if getline(test) =~ '^\s*{'
+	    let test = GetLastRealCodeLNum(GetLastRealCodeLNum(test - 1) - 1)
+	endif
+    endif
+
+    " did we find it?
+    if getline(test) =~# '^\s*switch\>'
+        return indent(test)
+    elseif getline(test) =~# s:defaultORcase
+        return indent(test) - &sw * b:PHP_vintage_case_default_indent
+    else
+        return FindTheSwitchIndent(test)
+    endif
+
+endfunction "}}}
+
 
 function! IslinePHP (lnum, tofind) " {{{
     " This function asks to the syntax if the pattern 'tofind' on the line
@@ -773,7 +805,7 @@ function! GetPhpIndent()
 		    let lnum = lnum - 1
 		endwhile
 
-		let b:InPHPcode_tofind = substitute( getline(lnum), '^.*<<<''\=\(\a\w*\)''\=$', '^\\s*\1;\\=$', '') " XXX 0607
+		let b:InPHPcode_tofind = substitute( getline(lnum), '^.*<<<''\=\(\a\w*\)''\=$', '^\\s*\1;\\=$', '')
 	    endif
 	else
 	    " IslinePHP returned "" => we are not in PHP or Javascript
@@ -843,9 +875,9 @@ function! GetPhpIndent()
 	    endif
 
 	    " Was last line the start of a HereDoc ?
-	elseif last_line =~? '<<<''\=\a\w*''\=$' " XXX 0607
+	elseif last_line =~? '<<<''\=\a\w*''\=$'
 	    let b:InPHPcode = 0
-	    let b:InPHPcode_tofind = substitute( last_line, '^.*<<<''\=\(\a\w*\)''\=$', '^\\s*\1;\\=$', '') " XXX 0607
+	    let b:InPHPcode_tofind = substitute( last_line, '^.*<<<''\=\(\a\w*\)''\=$', '^\\s*\1;\\=$', '')
 
 	    " Skip /* \n+ */ comments except when the user is currently
 	    " writing them or when it is a comment (ie: not a code put in comment)
@@ -974,16 +1006,15 @@ function! GetPhpIndent()
 	endif
     endif
 
-    let defaultORcase = '^\s*\%(default\|case\).*:'
 
     " if the last line is a stated line and it's not indented then why should
     " we indent this one??
     " Do not do this if the last line is a ')' because array indentation can
-    " fail... defaultORcase can be at col 0.
+    " fail... and defaultORcase can be at col 0.
     " if optimized mode is active and nor current or previous line are an 'else'
     " or the end of a possible bracketless thing then indent the same as the previous
     " line
-    if last_line =~ '[;}]'.endline && last_line !~ '^)' && last_line !~# defaultORcase " Added && last_line !~ '^)' on 2007-12-30
+    if last_line =~ '[;}]'.endline && last_line !~ '^)' && last_line !~# s:defaultORcase " Added && last_line !~ '^)' on 2007-12-30
 	if ind==b:PHP_default_indenting
 	    " if no indentation for the previous line
 	    return b:PHP_default_indenting
@@ -1011,9 +1042,12 @@ function! GetPhpIndent()
     " (to match an 'else' preceded by a '}' is irrelevant and futile - see
     " code above)
     if ind != b:PHP_default_indenting && cline =~# '^\s*else\%(if\)\=\>'
-	" prevent optimized to work at next call
+	" prevent optimized to work at next call  XXX why ?
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 	return indent(FindTheIfOfAnElse(v:lnum, 1))
+    elseif cline =~# s:defaultORcase
+        " case and default need a special treatment
+        return FindTheSwitchIndent(v:lnum) + &sw * b:PHP_vintage_case_default_indent
     elseif cline =~ '^\s*)\=\s*{'
 	let previous_line = last_line
 	let last_line_num = lnum
@@ -1039,8 +1073,8 @@ function! GetPhpIndent()
 
     elseif last_line =~# unstated && cline !~ '^\s*);\='.endline
 	let ind = ind + &sw " we indent one level further when the preceding line is not stated
-    "echo "42"
-    "call getchar()
+        "echo "42"
+        "call getchar()
 	return ind
 
 	" If the last line is terminated by ';' or if it's a closing '}'
@@ -1108,8 +1142,8 @@ function! GetPhpIndent()
 		" last_line_num and of last_line_num - 1!
 		" If those are == then we are almost done.
 		"
-		" That isn't sufficient, we need to test how the first of the
-		" 2 lines is ended...
+		" That isn't sufficient, we need to test how the first of
+                " these 2 lines ends...
 
 		" Remember the 'topest' line we found so far
 		let last_match = last_line_num
@@ -1123,7 +1157,7 @@ function! GetPhpIndent()
 
 		" If we find a '{' or a case/default then we are inside that block so lets
 		" indent properly... Like the line following that block starter
-		if previous_line =~# defaultORcase.'\|{'.endline
+		if previous_line =~# s:defaultORcase.'\|{'.endline
 		    break
 		endif
 
@@ -1231,9 +1265,8 @@ function! GetPhpIndent()
 	    "	    a default/case if yes indent else let since it must have
 	    "	    been indented correctly already
 
-	"elseif cline !~ '^\s*{' && AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.defaultORcase
-	elseif AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . defaultORcase
-            " XXX review this part
+	"elseif cline !~ '^\s*{' && AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.s:defaultORcase
+	elseif AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . s:defaultORcase
 	    let ind = ind + &sw
 	    "echo pline. "  --test 2--   " . ind
 	    "call getchar()
