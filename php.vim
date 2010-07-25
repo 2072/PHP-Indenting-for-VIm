@@ -637,11 +637,7 @@ function! IslinePHP (lnum, tofind) " {{{
 endfunction " }}}
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|else\)'
-if b:PHP_ANSI_indenting
-    let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
-else
-    let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
-endif
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
 
 " make sure the options needed for this script to work correctly are set here
 " for the last time. They could have been overridden by any 'onevent'
@@ -983,7 +979,7 @@ function! GetPhpIndent()
     " if the last line is a stated line and it's not indented then why should
     " we indent this one??
     " Do not do this if the last line is a ')' because array indentation can
-    " fail...
+    " fail... defaultORcase can be at col 0.
     " if optimized mode is active and nor current or previous line are an 'else'
     " or the end of a possible bracketless thing then indent the same as the previous
     " line
@@ -1158,10 +1154,6 @@ function! GetPhpIndent()
 	    " from acting in some special cases
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
-	    " case and default are indented 1 level below the surrounding code
-	    if cline =~# defaultORcase " XXX XXX
-		let ind = ind - &sw
-	    endif
 	    return ind
 	endif
 	" if nothing was done lets the old script continue
@@ -1169,7 +1161,7 @@ function! GetPhpIndent()
 
     let plinnum = GetLastRealCodeLNum(lnum - 1)
     " previous to last line
-    let pline = getline(plinnum)
+    let AntepenultimateLine = getline(plinnum)
 
     " REMOVE comments at end of line before treatment
     " the first part of the regex removes // from the end of line when they are
@@ -1195,7 +1187,7 @@ function! GetPhpIndent()
 
 	" if the last line is a [{(]$ or a multiline function call (or array
 	" declaration) with already one parameter on the opening ( line
-	if last_line =~# '[{(]'.endline || last_line =~? '\h\w*\s*(.*,$' && pline !~ '[,(]'.endline
+	if last_line =~# '[{(]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
 
 	    if !b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{'
 		let ind = ind + &sw
@@ -1203,7 +1195,7 @@ function! GetPhpIndent()
 
 	    "    echo "43"
 	    "    call getchar()
-	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1 || cline !~# defaultORcase
+	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
 
@@ -1232,19 +1224,16 @@ function! GetPhpIndent()
 
 	    " In all other cases if the last line isn't terminated indent 1
 	    " level higher but only if the last line wasn't already indented
-	    " for the same "code event"/reason. IE: if the line before the
-	    " last is terminated.
+	    " for the same "code event"/reason. IE: if the antepenultimate line is terminated.
 	    "
 	    " 2nd explanation:
-	    "	    - Test if the line before the previous is terminated or is
+	    "	    - Test if the antepenultimate line is terminated or is
 	    "	    a default/case if yes indent else let since it must have
 	    "	    been indented correctly already
 
-	"elseif cline !~ '^\s*{' && pline =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.defaultORcase
-	elseif pline =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . defaultORcase && cline !~# defaultORcase
-
-	    "echo pline. "     " . ind
-	    "call getchar()
+	"elseif cline !~ '^\s*{' && AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.defaultORcase
+	elseif AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . defaultORcase
+            " XXX review this part
 	    let ind = ind + &sw
 	    "echo pline. "  --test 2--   " . ind
 	    "call getchar()
@@ -1257,12 +1246,6 @@ function! GetPhpIndent()
     " If the current line closes a multiline function call or array def
     if cline =~  '^\s*);\='
 	let ind = ind - &sw
-	" CASE and DEFAULT are indented a level below the surrounding code.
-    elseif cline =~# defaultORcase && last_line !~# defaultORcase
-	let ind = ind - &sw
-    "echom "fuck!"
-    "call getchar()
-
     endif
 
     let b:PHP_CurrentIndentLevel = ind
