@@ -500,11 +500,13 @@ function! Skippmatch2()
 
     let line = getline(".")
 
-   if line =~ '\%(".*\)\@<=/\*\%(.*"\)\@=' || line =~ "\\%('.*\\)\\@<=/\\*\\%(.*'\\)\\@=" || line =~ '\%(\%(//\|#\).*\)\@<=/\*'
-       return 1
-   else
-       return 0
-   endif
+    " Fix /* would be treated as comment start with single quote surrounded.
+    " E.g: $str = '/*'
+    if line =~ '\%(".*\)\@<=/\*\%(.*"\)\@=' || line =~ "\\%('.*\\)\\@<=/\\*\\%(.*'\\)\\@=" || line =~ '\%(\%(//\|#\).*\)\@<=/\*'
+        return 1
+    else
+        return 0
+    endif
 endfun
 
 function! Skippmatch()	" {{{
