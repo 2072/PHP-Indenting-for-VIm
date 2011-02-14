@@ -500,9 +500,9 @@ function! Skippmatch2()
 
     let line = getline(".")
 
-    " Fix /* would be treated as comment start with single quote surrounded.
-    " E.g: $str = '/*'
-    if line =~ '\%(".*\)\@<=/\*\%(.*"\)\@=' || line =~ "\\%('.*\\)\\@<=/\\*\\%(.*'\\)\\@=" || line =~ '\%(\%(//\|#\).*\)\@<=/\*'
+    " Skip opening /* if they are inside a string or preceded  by a single
+    " line comment starter
+    if line =~ "\\([\"']\\).*/\\*.*\\1" || line =~ '\%(//\|#\).*/\*'
         return 1
     else
         return 0
