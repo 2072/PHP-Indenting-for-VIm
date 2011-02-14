@@ -2,9 +2,14 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:	2010 Jully 26th
+" Last Change:	2011 February 14th
 " Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.33
+" Version:	1.34
+"
+"
+" Changes: 1.34		- Fix: string with /* would be treated as comment
+"			  start when using single quote. (Thanks to Manic Chuang
+"			  for the fix)
 "
 "
 " Changes: 1.33		- Rewrote Switch(){case:default:} handling from
