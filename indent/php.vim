@@ -724,7 +724,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    echom 'Large indenting detected, speed optimizations engaged (v1.33)'
+	    " echom 'Large indenting detected, speed optimizations engaged (v1.34)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
@@ -734,7 +734,7 @@ function! GetPhpIndent()
     " status variable (we restart from scratch)
     if b:InPHPcode_checked && prevnonblank(v:lnum - 1) != b:PHP_lastindented
 	if b:PHP_indentinghuge
-	    echom 'Large indenting deactivated'
+	    " echom 'Large indenting deactivated'
 	    let b:PHP_indentinghuge = 0
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 	endif
