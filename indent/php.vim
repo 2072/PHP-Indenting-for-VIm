@@ -2,9 +2,12 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:	2011 February 14th
+" Last Change:	2011 October 23rd
 " Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.34
+" Version:	1.35
+"
+" Changes: 1.35		- New option: PHP_outdentSLComments to add extra
+"			  indentation to single-line comments.
 "
 "
 " Changes: 1.34		- Fix: string with /* would be treated as comment
@@ -308,6 +311,8 @@
 " Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
 "		    befaore 'case:' and 'default":' statement in switch blocks.
 "
+" Options: PHP_outdentSLComments = # of sw (defaults to 0) to outdent single line PHP
+"		    comments (// and # or /**/).
 "
 " Remove all the comments from this file:
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
@@ -329,11 +334,18 @@ let b:did_indent = 1
 let php_sync_method = 0
 
 
-" Apply PHP_default_indenting option
+" Apply options
+
 if exists("PHP_default_indenting")
     let b:PHP_default_indenting = PHP_default_indenting * &sw
 else
     let b:PHP_default_indenting = 0
+endif
+
+if exists("PHP_outdentSLComments")
+    let b:PHP_outdentSLComments = PHP_outdentSLComments * &sw
+else
+    let b:PHP_outdentSLComments = 0
 endif
 
 if exists("PHP_BracesAtCodeLevel")
@@ -891,7 +903,9 @@ function! GetPhpIndent()
 
     " Align correctly multi // or # lines
     " Indent successive // or # comment the same way the first is {{{
+    let addSpecial = 0
     if cline =~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)'
+	let addSpecial = b:PHP_outdentSLComments
 	if b:PHP_LastIndentedWasComment == 1
 	    return indent(real_PHP_lastindented)
 	endif
@@ -963,7 +977,7 @@ function! GetPhpIndent()
 
     " Hit the start of the file, use default indent.
     if lnum == 0
-	return b:PHP_default_indenting
+	return b:PHP_default_indenting + addSpecial
     endif
 
 
@@ -1005,9 +1019,9 @@ function! GetPhpIndent()
     if last_line =~ '[;}]'.endline && last_line !~ '^)' && last_line !~# s:defaultORcase " Added && last_line !~ '^)' on 2007-12-30
 	if ind==b:PHP_default_indenting
 	    " if no indentation for the previous line
-	    return b:PHP_default_indenting
+	    return b:PHP_default_indenting + addSpecial
 	elseif b:PHP_indentinghuge && ind==b:PHP_CurrentIndentLevel && cline !~# '^\s*\%(else\|\%(case\|default\).*:\|[})];\=\)' && last_line !~# '^\s*\%(\%(}\s*\)\=else\)' && getline(GetLastRealCodeLNum(lnum - 1))=~';'.endline
-	    return b:PHP_CurrentIndentLevel
+	    return b:PHP_CurrentIndentLevel + addSpecial
 	endif
     endif
 
@@ -1063,7 +1077,7 @@ function! GetPhpIndent()
 	let ind = ind + &sw " we indent one level further when the preceding line is not stated
 	"echo "42"
 	"call getchar()
-	return ind
+	return ind + addSpecial
 
 	" If the last line is terminated by ';' or if it's a closing '}'
 	" We need to check if this isn't the end of a multilevel non '{}'
@@ -1176,7 +1190,7 @@ function! GetPhpIndent()
 	    " from acting in some special cases
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
-	    return ind
+	    return ind + addSpecial
 	endif
 	" if nothing was done lets the old script continue
     endif
@@ -1221,7 +1235,7 @@ function! GetPhpIndent()
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
 
-		return ind
+		return ind + addSpecial
 	    endif
 
 	    " If the last line isn't empty and ends with a '),' then check if the
@@ -1270,7 +1284,7 @@ function! GetPhpIndent()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
-    return ind
+    return ind + addSpecial
 endfunction
 
 " vim: set ts=8 sw=4 sts=4:
