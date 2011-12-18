@@ -668,7 +668,7 @@ function! IslinePHP (lnum, tofind) " {{{
     endif
 endfunction " }}}
 
-let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|else\)'
+let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
 
 " make sure the options needed for this script to work correctly are set here
