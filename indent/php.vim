@@ -1223,7 +1223,7 @@ function! GetPhpIndent()
 
 	" if the last line is a [{(]$ or a multiline function call (or array
 	" declaration) with already one parameter on the opening ( line
-	if last_line =~# '[{(]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
+	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
 
 	    if !b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{'
 		let ind = ind + &sw
@@ -1279,7 +1279,7 @@ function! GetPhpIndent()
     "echo "end"
     "call getchar()
     " If the current line closes a multiline function call or array def
-    if cline =~  '^\s*);\='
+    if cline =~  '^\s*[)\]];\='
 	let ind = ind - &sw
     endif
 
