@@ -2,9 +2,12 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:	2011 October 23rd
+" Last Change:	2013 February 23rd
 " Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.35
+" Version:	1.36
+"
+" Changes: 1.36		- Added support for short array declaration (Thanks to
+"			  Warren Seymour)
 "
 " Changes: 1.35		- New option: PHP_outdentSLComments to add extra
 "			  indentation to single-line comments.
@@ -1016,7 +1019,7 @@ function! GetPhpIndent()
     " if optimized mode is active and nor current or previous line are an 'else'
     " or the end of a possible bracketless thing then indent the same as the previous
     " line
-    if last_line =~ '[;}]'.endline && last_line !~ '^)' && last_line !~# s:defaultORcase " Added && last_line !~ '^)' on 2007-12-30
+    if last_line =~ '[;}]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase
 	if ind==b:PHP_default_indenting
 	    " if no indentation for the previous line
 	    return b:PHP_default_indenting + addSpecial
@@ -1098,7 +1101,7 @@ function! GetPhpIndent()
 	"
 	"			$thing =
 	"				"something";
-    elseif (ind != b:PHP_default_indenting || last_line =~ '^)' ) && last_line =~ terminated " Added || last_line =~ '^)' on 2007-12-30 (array indenting problem broke other things)
+    elseif (ind != b:PHP_default_indenting || last_line =~ '^[)\]]' ) && last_line =~ terminated " Added || last_line =~ '^)' on 2007-12-30 (array indenting problem broke other things)
 	" If we are here it means that the previous line is:
 	" - a *;$ line
 	" - a [beginning-blanck] } followed by anything but a { $
@@ -1221,7 +1224,7 @@ function! GetPhpIndent()
 	" the last line isn't a .*; or a }$ line
 	" Indent correctly multilevel and multiline '(.*)' things
 
-	" if the last line is a [{(]$ or a multiline function call (or array
+	" if the last line is a [{(\[]$ or a multiline function call (or array
 	" declaration) with already one parameter on the opening ( line
 	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
 
