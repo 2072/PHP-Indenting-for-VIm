@@ -815,7 +815,7 @@ function! GetPhpIndent()
 	    let b:InPHPcode = 0
 	    let b:UserIsTypingComment = 0
 	    " Then we have to find a php start tag...
-	    let b:InPHPcode_tofind = '<?\%(.*?>\)\@!\|<script.*>'
+	    let b:InPHPcode_tofind = s:PHP_startindenttag
 	endif
     endif "!b:InPHPcode_checked }}}
 
