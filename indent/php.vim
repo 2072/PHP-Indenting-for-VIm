@@ -2,10 +2,13 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
-" Last Change:	2013 February 23rd
+" Last Change:	2013 May
 " Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
-" Version:	1.36
+" Version:	1.37
 "
+" Chqnges: 1.37		- Fix a bug for inline script element [imicky]
+"			- Fix issue #11 (): https://github.com/2072/PHP-Indenting-for-VIm/issues/11
+"   
 " Changes: 1.36		- Added support for short array declaration (Thanks to
 "			  Warren Seymour)
 "
@@ -422,8 +425,15 @@ endif
 
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
-"setlocal debug=msg " XXX -- do not comment this line when modifying this file
+" setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
+
+function! DebugPrintReturn(scriptLine)
+
+    " echo "debug:" . a:scriptLine
+    " call getchar()
+
+endfunction
 
 function! GetLastRealCodeLNum(startline) " {{{
     "Inspired from the function SkipJavaBlanksAndComments by Toby Allsopp for indent/java.vim
@@ -849,8 +859,10 @@ function! GetPhpIndent()
 		let b:PHP_LastIndentedWasComment = 0
 
 		if cline =~ '^\s*\*/'
+	    call DebugPrintReturn(862)
 		    return indent(lnum) + 1
 		else
+	    call DebugPrintReturn(865)
 		    return indent(lnum)
 		endif
 
@@ -901,6 +913,7 @@ function! GetPhpIndent()
 
     " Non PHP code is let as it is
     if !b:InPHPcode && !b:InPHPcode_and_script
+	    call DebugPrintReturn(914)
 	return -1
     endif
 
@@ -980,6 +993,7 @@ function! GetPhpIndent()
 
     " Hit the start of the file, use default indent.
     if lnum == 0
+	    call DebugPrintReturn(993)
 	return b:PHP_default_indenting + addSpecial
     endif
 
@@ -989,6 +1003,7 @@ function! GetPhpIndent()
     if cline =~ '^\s*}\%(}}\)\@!'
 	let ind = indent(FindOpenBracket(v:lnum))
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
+	    call DebugPrintReturn(1002)
 	return ind
     endif
 
@@ -1005,8 +1020,10 @@ function! GetPhpIndent()
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
 	if cline =~ '^\s*\*/'
+	    call DebugPrintReturn(1018)
 	    return indent(lnum) + 1
 	else
+	    call DebugPrintReturn(1021)
 	    return indent(lnum)
 	endif
     endif
@@ -1021,9 +1038,11 @@ function! GetPhpIndent()
     " line
     if last_line =~ '[;}]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase
 	if ind==b:PHP_default_indenting
+	    call DebugPrintReturn(1034)
 	    " if no indentation for the previous line
 	    return b:PHP_default_indenting + addSpecial
 	elseif b:PHP_indentinghuge && ind==b:PHP_CurrentIndentLevel && cline !~# '^\s*\%(else\|\%(case\|default\).*:\|[})];\=\)' && last_line !~# '^\s*\%(\%(}\s*\)\=else\)' && getline(GetLastRealCodeLNum(lnum - 1))=~';'.endline
+	    call DebugPrintReturn(1037)
 	    return b:PHP_CurrentIndentLevel + addSpecial
 	endif
     endif
@@ -1031,9 +1050,9 @@ function! GetPhpIndent()
     " used to prevent redundant tests in the last part of the script
     let LastLineClosed = 0
 
-    let terminated = '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.endline
+    let terminated = '\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.endline
     " What is a terminated line?
-    " - a line terminated by a ";" optionally followed by a "?>"
+    " - a line terminated by a ";" optionally followed by a "?>" or "}"
     " - a HEREDOC starter line (the content of such block is never seen by this script)
     " - a "}" not followed by a "{"
 
@@ -1049,8 +1068,10 @@ function! GetPhpIndent()
     if ind != b:PHP_default_indenting && cline =~# '^\s*else\%(if\)\=\>'
 	" prevent optimized to work at next call  XXX why ?
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
+    call DebugPrintReturn(1062)
 	return indent(FindTheIfOfAnElse(v:lnum, 1))
     elseif cline =~# s:defaultORcase
+    call DebugPrintReturn(1064)
 	" case and default need a special treatment
 	return FindTheSwitchIndent(v:lnum) + &sw * b:PHP_vintage_case_default_indent
     elseif cline =~ '^\s*)\=\s*{'
@@ -1069,6 +1090,7 @@ function! GetPhpIndent()
 		    let ind = ind + &sw
 		endif
 
+    call DebugPrintReturn(1083)
 		return ind
 	    endif
 
@@ -1080,6 +1102,7 @@ function! GetPhpIndent()
 	let ind = ind + &sw " we indent one level further when the preceding line is not stated
 	"echo "42"
 	"call getchar()
+    call DebugPrintReturn(1093)
 	return ind + addSpecial
 
 	" If the last line is terminated by ';' or if it's a closing '}'
@@ -1118,12 +1141,16 @@ function! GetPhpIndent()
 
 	while 1
 	    " let's skip '{}' blocks
-	    if previous_line =~ '^\s*}'
+	    if previous_line =~ '^\s*}\|;\s*}'.endline " XXX
 		" find the opening '{'
-		let last_line_num = FindOpenBracket(last_line_num)
+
+		call cursor(last_line_num, 1)
+		call search('}\|;\s*}'.endline, 'W')
+		let oldLastLine = last_line_num
+		let last_line_num = searchpair('{', '', '}', 'bW', 'Skippmatch()')
 
 		" if the '{' is alone on the line get the line before
-		if getline(last_line_num) =~ '^\s*{'
+		if oldLastLine == last_line_num || getline(last_line_num) =~ '^\s*{'
 		    let last_line_num = GetLastRealCodeLNum(last_line_num - 1)
 		endif
 
@@ -1163,13 +1190,15 @@ function! GetPhpIndent()
 		" If we find a '{' or a case/default then we are inside that block so lets
 		" indent properly... Like the line following that block starter
 		if previous_line =~# s:defaultORcase.'\|{'.endline
+	    call DebugPrintReturn(1189)
 		    break
 		endif
 
 		" The 3 lines below are not necessary for the script to work
-		" but it makes it work a little more faster in some (rare) cases.
+		" but it makes it work a little faster in some (rare) cases.
 		" We verify if we are at the top of a non '{}' struct.
 		if after_previous_line=~# '^\s*'.s:blockstart.'.*)'.endline && previous_line =~# '[;}]'.endline
+	    call DebugPrintReturn(1196)
 		    break
 		endif
 
@@ -1180,6 +1209,7 @@ function! GetPhpIndent()
 		    " it's useless to match ')$' since the lines couldn't have
 		    " the same indent...
 		    if previous_line =~# '\%(;\|^\s*}\)'.endline || last_line_num < 1
+	    call DebugPrintReturn(last_match)
 			break
 		    endif
 		endif
@@ -1193,6 +1223,7 @@ function! GetPhpIndent()
 	    " from acting in some special cases
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
+	    call DebugPrintReturn(1222)
 	    return ind + addSpecial
 	endif
 	" if nothing was done lets the old script continue
@@ -1238,6 +1269,7 @@ function! GetPhpIndent()
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
 
+    call DebugPrintReturn(1251)
 		return ind + addSpecial
 	    endif
 
@@ -1271,7 +1303,7 @@ function! GetPhpIndent()
 	    "	    been indented correctly already
 
 	"elseif cline !~ '^\s*{' && AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.s:defaultORcase
-	elseif AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . s:defaultORcase
+	elseif AntepenultimateLine =~ '\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . s:defaultORcase
 	    let ind = ind + &sw
 	    "echo pline. "  --test 2--	 " . ind
 	    "call getchar()
@@ -1287,6 +1319,7 @@ function! GetPhpIndent()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
+    call DebugPrintReturn(1300)
     return ind + addSpecial
 endfunction
 
