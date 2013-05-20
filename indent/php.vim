@@ -2,13 +2,48 @@
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
+" Home:		https://github.com/2072/PHP-Indenting-for-VIm
 " Last Change:	2013 May 10th
-" Newsletter:	http://www.2072productions.com/?to=php-indent-for-vim-newsletter.php
 " Version:	1.37
 "
-" Chqnges: 1.37		- Fix a bug for inline script element [imicky]
+"
+"	Type :help php-indent for available options
+"
+"	A fully commented version of this file is available on github
+"
+"
+"  If you find a bug, please open a ticket on github.org
+"  ( https://github.com/2072/PHP-Indenting-for-VIm/issues ) with an example of
+"  code that breaks the algorithm.
+"
+
+" NOTE: This script must be used with PHP syntax ON and with the php syntax
+"	script by Lutz Eymers (http://www.isp.de/data/php.vim ) or with the
+"	script by Peter Hodge (http://www.vim.org/scripts/script.php?script_id=1571 )
+"	the later is bunbdled by default with Vim 7.
+"
+"
+"	In the case you have syntax errors in your script such as HereDoc end
+"	identifiers not at col 1 you'll have to indent your file 2 times (This
+"	script will automatically put HereDoc end identifiers at col 1 if
+"	they are followed by a ';').
+"
+
+" NOTE: If you are editing files in Unix file format and that (by accident)
+"	there are '\r' before new lines, this script won't be able to proceed
+"	correctly and will make many mistakes because it won't be able to match
+"	'\s*$' correctly.
+"	So you have to remove those useless characters first with a command like:
+"
+"	:%s /\r$//g
+"
+"	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
+"	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.37		- Fix a bug for inline script element [imicky]
 "			- Fix issue #11: https://github.com/2072/PHP-Indenting-for-VIm/issues/11
-"   
+"
 " Changes: 1.36		- Added support for short array declaration (Thanks to
 "			  Warren Seymour)
 "
@@ -24,7 +59,7 @@
 " Changes: 1.33		- Rewrote Switch(){case:default:} handling from
 "			  scratch in a simpler more logical and infallible way...
 "			- Removed PHP_ANSI_indenting which is no longer
-"		 	  needed.
+"			  needed.
 "
 "
 " Changes: 1.32b	- Added PHP_ANSI_indenting and PHP_outdentphpescape
@@ -251,78 +286,11 @@
 "		      should.
 "		      That will be corrected in the next version.
 "
-"  If you find a bug, please e-mail me at John.wellesz (AT) teaser (DOT) fr
-"  with an example of code that breaks the algorithm.
-"
-"
-"	Thanks a lot for using this script.
-"
 
-" NOTE: This script must be used with PHP syntax ON and with the php syntax
-"	script by Lutz Eymers (http://www.isp.de/data/php.vim ) or with the
-"	script by Peter Hodge (http://www.vim.org/scripts/script.php?script_id=1571 )
-"	the later is bunbdled by default with Vim 7.
 "
-"
-"	In the case you have syntax errors in your script such as HereDoc end
-"	identifiers not at col 1 you'll have to indent your file 2 times (This
-"	script will automatically put HereDoc end identifiers at col 1 if
-"	they are followed by a ';').
-"
-
-" NOTE: If you are editing files in Unix file format and that (by accident)
-"	there are '\r' before new lines, this script won't be able to proceed
-"	correctly and will make many mistakes because it won't be able to match
-"	'\s*$' correctly.
-"	So you have to remove those useless characters first with a command like:
-"
-"	:%s /\r$//g
-"
-"	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
-"	silently remove them when VIM load this script (at each bufread).
-"
-"
-" Options: PHP_autoformatcomment = 0 to not enable autoformating of comment by
-"		    default, if set to 0, this script will let the 'formatoptions' setting intact.
-"
-" Options: PHP_default_indenting = # of sw (default is 0), # of sw will be
-"		   added to the indent of each line of PHP code.
-"
-" Options: PHP_removeCRwhenUnix = 1 to make the script automatically remove CR
-"		   at end of lines (by default this option is unset), NOTE that you
-"		   MUST remove CR when the fileformat is UNIX else the indentation
-"		   won't be correct!
-"
-" Options: PHP_BracesAtCodeLevel = 1 to indent the '{' and '}' at the same
-"		   level than the code they contain.
-"		   Exemple:
-"			Instead of:
-"				if ($foo)
-"				{
-"					foo();
-"				}
-"
-"			You will write:
-"				if ($foo)
-"					{
-"					foo();
-"					}
-"
-"			NOTE: The script will be a bit slower if you use this option because
-"			some optimizations won't be available.
-"
-"
-" Options: PHP_outdentphpescape = 0 (defaults to 1) to indent PHP tags as the surrounding code.
-"
-" Options: PHP_vintage_case_default_indent = 1 (defaults to 0) to add a meaningless indent
-"		    befaore 'case:' and 'default":' statement in switch blocks.
-"
-" Options: PHP_outdentSLComments = # of sw (defaults to 0) to outdent single line PHP
-"		    comments (// and # or /**/).
-"
-" Remove all the comments from this file:
+" Remove all the comments from this file (when sending this file to Bram):
 " :%s /^\s*".*\({{{\|xxx\)\@<!\n\c//g
-" }}}
+" }}} the header needs to be re-included afterwards
 
 " The 4 following lines prevent this script from being loaded several times per buffer.
 " They also prevent the load of different indent scripts for PHP at the same time.
@@ -690,7 +658,7 @@ if ! s:autoresetoptions
 endif
 
 function! ResetPhpOptions()
-    if ! b:optionsset && &filetype == "php" 
+    if ! b:optionsset && &filetype == "php"
 	if b:PHP_autoformatcomment
 
 	    " Set the comment setting to something correct for PHP
@@ -1274,7 +1242,7 @@ function! GetPhpIndent()
 	    if openedparent != lnum
 		let ind = indent(openedparent)
 	    endif
-	
+
 	    " if the line before starts a block then we need to indent the
 	    " current line.
 	elseif last_line =~ '^\s*'.s:blockstart
@@ -1295,7 +1263,7 @@ function! GetPhpIndent()
 	endif
 
     endif
- 
+
     " If the current line closes a multiline function call or array def
     if cline =~  '^\s*[)\]];\='
 	let ind = ind - &sw
