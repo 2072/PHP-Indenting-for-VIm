@@ -22,7 +22,7 @@ own 'formatoptions'): >
     :let g:PHP_autoformatcomment = 0
 
 Else, 't' will be removed from the 'formatoptions' string and "qrowcb" will be
-added, see |fo-table|for more information.
+added, see |fo-table| for more information.
 -------------
 
 To add extra indentation to single-line comments: >
