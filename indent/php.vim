@@ -299,7 +299,7 @@ if exists("b:did_indent")
 endif
 let b:did_indent = 1
 
-"	This script set the option php_sync_method of PHP syntax script to 0
+"	This script sets the option php_sync_method of PHP syntax script to 0
 "	(fromstart indenting method) in order to have an accurate syntax.
 "	If you are using very big PHP files (which is a bad idea) you will
 "	experience slowings down while editing, if your code contains only PHP
