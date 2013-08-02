@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2013 May 10th
-" Version:	1.37
+" Last Change:	2013 August 2nd
+" Version:	1.38
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,11 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+" Changes: 1.38		- Fix an incredibly old bug that managed to survive
+"			  unnoticed until today: the PHP code identifier routine was missing a few
+"			  syntax names (Define, Structure, Storageclass and Exception). If you started
+"			  indenting on such a line, nothing would happen as
+"			  the script thought it wasn't actual PHP code...
 "
 " Changes: 1.37		- Fix a bug for inline script element [imicky]
 "			- Fix issue #11: https://github.com/2072/PHP-Indenting-for-VIm/issues/11
@@ -508,6 +513,7 @@ function! Skippmatch()	" {{{
     " times faster but you may have troubles with '{' inside comments or strings
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
+	" DEBUG " call DebugPrintReturn(synname ." ". b:UserIsTypingComment )
     if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# "^phpComment" && b:UserIsTypingComment
 	return 0
     else
@@ -613,7 +619,9 @@ function! FindTheSwitchIndent (lnum) " {{{
 
 endfunction "}}}
 
-
+" 2013-08-02: I wish I had lists and dictionaries when I designed this
+" script 9 years ago (wait... what? 9 years !?!?!)...
+let s:SynPHPMatchGroups = {'phpParent':1, 'Delimiter':1, 'Define':1, 'Storageclass':1, 'Structure':1, 'Exception':1}
 function! IslinePHP (lnum, tofind) " {{{
     " This function asks to the syntax if the pattern 'tofind' on the line
     " number 'lnum' is PHP code (very slow...).
@@ -636,9 +644,8 @@ function! IslinePHP (lnum, tofind) " {{{
     " ask to syntax what is its name
     let synname = synIDattr(synID(a:lnum, coltotest, 0), "name")
 
-"	echom synname
-    " if matchstr(synname, '^...') == "php" || synname=="Delimiter" || synname =~? '^javaScript'
-    if synname =~ '^php' || synname=="Delimiter" || synname =~? '^javaScript'
+    " DEBUG " call DebugPrintReturn(synname)
+    if get(s:SynPHPMatchGroups, synname) || synname =~ '^php' ||  synname =~? '^javaScript'
 	return synname
     else
 	return ""
@@ -713,7 +720,7 @@ function! GetPhpIndent()
     if !b:PHP_indentinghuge && b:PHP_lastindented > b:PHP_indentbeforelast
 	if b:PHP_indentbeforelast
 	    let b:PHP_indentinghuge = 1
-	    " echom 'Large indenting detected, speed optimizations engaged (v1.34)'
+	    " echom 'Large indenting detected, speed optimizations engaged (v1.38)'
 	endif
 	let b:PHP_indentbeforelast = b:PHP_lastindented
     endif
@@ -877,7 +884,7 @@ function! GetPhpIndent()
 
     " Non PHP code is let as it is
     if !b:InPHPcode && !b:InPHPcode_and_script
-	" DEBUG call DebugPrintReturn(914)
+	" DEBUG call DebugPrintReturn(880)
 	return -1
     endif
 
@@ -967,7 +974,7 @@ function! GetPhpIndent()
     if cline =~ '^\s*}\%(}}\)\@!'
 	let ind = indent(FindOpenBracket(v:lnum))
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
-	" DEBUG call DebugPrintReturn(1002)
+	" DEBUG call DebugPrintReturn("1002" . FindOpenBracket(v:lnum) )
 	return ind
     endif
 
