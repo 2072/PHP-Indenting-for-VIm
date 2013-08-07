@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2013 August 2nd
-" Version:	1.38
+" Last Change:	2013 August 7th
+" Version:	1.39
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.39		- Also add 'StorageClass' syntax identifier (with an uppercase C) as it
+"			  also exists in the syntax file.
 "
 " Changes: 1.38		- Fix an incredibly old bug that managed to survive
 "			  unnoticed until today: the PHP code identifier routine was missing a few
@@ -621,7 +624,7 @@ endfunction "}}}
 
 " 2013-08-02: I wish I had lists and dictionaries when I designed this
 " script 9 years ago (wait... what? 9 years !?!?!)...
-let s:SynPHPMatchGroups = {'phpParent':1, 'Delimiter':1, 'Define':1, 'Storageclass':1, 'Structure':1, 'Exception':1}
+let s:SynPHPMatchGroups = {'phpParent':1, 'Delimiter':1, 'Define':1, 'Storageclass':1, 'StorageClass':1, 'Structure':1, 'Exception':1}
 function! IslinePHP (lnum, tofind) " {{{
     " This function asks to the syntax if the pattern 'tofind' on the line
     " number 'lnum' is PHP code (very slow...).
