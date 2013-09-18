@@ -682,8 +682,6 @@ function! ResetPhpOptions()
 	    setlocal formatoptions+=r
 	    " Insert comment leader after hitting o or O in normal mode
 	    setlocal formatoptions+=o
-	    " Uses trailing white spaces to detect paragraphs
-	    setlocal formatoptions+=w
 	    " Autowrap comments using textwidth
 	    setlocal formatoptions+=c
 	    " Do not wrap if you modify a line after textwidth
