@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2013 August 7th
-" Version:	1.39
+" Last Change:	2013 September 23rd
+" Version:	1.40
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,14 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.40         - Added the 'final' keyword as a block starter so final
+"                         classes' code is indented correctly.
+"
+"                       - No longer add 'w' to formatoptions VIm' setting as
+"                         no other file-type plug-in uses it by default. This
+"                         prevents leaving trailing white spaces when text
+"                         wrapping.
 "
 " Changes: 1.39		- Also add 'StorageClass' syntax identifier (with an uppercase C) as it
 "			  also exists in the syntax file.
