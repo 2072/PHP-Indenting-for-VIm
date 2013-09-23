@@ -656,7 +656,7 @@ function! IslinePHP (lnum, tofind) " {{{
 endfunction " }}}
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|try\>\|catch\>\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|catch\>\)'
 
 " make sure the options needed for this script to work correctly are set here
 " for the last time. They could have been overridden by any 'onevent'
