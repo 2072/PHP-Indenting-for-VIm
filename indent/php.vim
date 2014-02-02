@@ -44,6 +44,9 @@
 " Changes: 1.41         - Fix handing of ^}\s*else\n{ blocks which were not
 "                         detected as new blocks and resulted in wrong indentation.
 "
+"                       - Fix issue #23 where the script could hang in some
+"                         specific cases involving closing braces at column 0;
+"
 " Changes: 1.40         - Added the 'final' keyword as a block starter so final
 "                         classes' code is indented correctly.
 "
