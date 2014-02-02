@@ -1127,10 +1127,13 @@ function! GetPhpIndent()
 		" find the opening '{'
 
 		call cursor(last_line_num, 1)
-		call search('}\|;\s*}'.endline, 'W')
+                if previous_line !~ '^}'
+                    call search('}\|;\s*}'.endline, 'W')
+                end
 		let oldLastLine = last_line_num
 		let last_line_num = searchpair('{', '', '}', 'bW', 'Skippmatch()')
 
+                " DEBUG call DebugPrintReturn("on line:" . line(".") . " { of } is on line " . last_line_num . ' } was on ' . oldLastLine)
 		" if the '{' is alone on the line get the line before
 		if oldLastLine == last_line_num || getline(last_line_num) =~ '^\s*{'
 		    let last_line_num = GetLastRealCodeLNum(last_line_num - 1)
@@ -1257,7 +1260,7 @@ function! GetPhpIndent()
 	    " de-indented one time.
 	elseif last_line =~ '\S\+\s*),'.endline
 	    call cursor(lnum, 1)
-	    call search('),'.endline, 'W')
+	    call search('),'.endline, 'W') " line never begins with ) so no need for 'c' flag
 	    let openedparent = searchpair('(', '', ')', 'bW', 'Skippmatch()')
 	    if openedparent != lnum
 		let ind = indent(openedparent)
