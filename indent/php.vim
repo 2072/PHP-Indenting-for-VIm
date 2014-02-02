@@ -47,6 +47,9 @@
 "                       - Fix issue #23 where the script could hang in some
 "                         specific cases involving closing braces at column 0;
 "
+"                       - Fix issue #6 where nested switches would not indent
+"                         correctly.
+"
 " Changes: 1.40         - Added the 'final' keyword as a block starter so final
 "                         classes' code is indented correctly.
 "
@@ -617,12 +620,12 @@ function! FindTheSwitchIndent (lnum) " {{{
 
     " A closing bracket? let skip the whole block to save some recursive calls
     if getline(test) =~ '^\s*}'
-	let test = FindOpenBracket(test)
+	let test = GetLastRealCodeLNum(FindOpenBracket(test) - 1)
 
-	" Put us on the line above the block starter since if it's a switch,
-	" it's not the one we want.
-	if getline(test) =~ '^\s*{'
-	    let test = GetLastRealCodeLNum(GetLastRealCodeLNum(test - 1) - 1)
+        " Put us on the line above the block starter if it's a switch since
+        " it's not the one we want.
+	if getline(test) =~ '^\s*switch\>'
+	    let test = GetLastRealCodeLNum(test - 1)
 	endif
     endif
 
