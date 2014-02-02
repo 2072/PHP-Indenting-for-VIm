@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2013 September 23rd
-" Version:	1.40
+" Last Change:	2014 February 2nd
+" Version:	1.41
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,10 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.41         - Fix handing of ^}\s*else\n{ blocks which were not
+"                         detected as new blocks and resulted in wrong indentation.
 "
 " Changes: 1.40         - Added the 'final' keyword as a block starter so final
 "                         classes' code is indented correctly.
@@ -664,7 +668,7 @@ function! IslinePHP (lnum, tofind) " {{{
 endfunction " }}}
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|catch\>\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|catch\>\)'
 
 " make sure the options needed for this script to work correctly are set here
 " for the last time. They could have been overridden by any 'onevent'
@@ -983,7 +987,7 @@ function! GetPhpIndent()
     if cline =~ '^\s*}\%(}}\)\@!'
 	let ind = indent(FindOpenBracket(v:lnum))
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
-	" DEBUG call DebugPrintReturn("1002" . FindOpenBracket(v:lnum) )
+	" DEBUG call DebugPrintReturn("1002 " . FindOpenBracket(v:lnum) )
 	return ind
     endif
 
