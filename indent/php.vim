@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 February 2nd
-" Version:	1.41
+" Last Change:	2014 February 3rd
+" Version:	1.42
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.42		- Added support (with some restrictions) for
+"			  multi-line string declarations (issue #22).
 "
 " Changes: 1.41		- Fix handing of ^}\s*else\n{ blocks which were not
 "			  detected as new blocks and resulted in wrong indentation.
@@ -497,6 +500,13 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    while getline(lnum) !~? tofind && lnum > 1
 		let lnum = lnum - 1
 	    endwhile
+	elseif lastline =~ '^[^''"`]*[''"`][;,]'.s:endline
+	    " match multiline strings
+	    let tofind=substitute( lastline, '^.*\([''"`]\)[;,].*$', '^[^\1]\\+[\1]$', '')
+	    " DEBUG call DebugPrintReturn( 'mls end, to find:' . tofind)
+	    while getline(lnum) !~? tofind && lnum > 1
+		let lnum = lnum - 1
+	    endwhile
 	else
 	    " if none of these were true then we are done
 	    break
@@ -534,7 +544,7 @@ function! Skippmatch()	" {{{
     " times faster but you may have troubles with '{' inside comments or strings
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
-	" DEBUG " call DebugPrintReturn(synname ." ". b:UserIsTypingComment )
+	" DEBUG call DebugPrintReturn(synname ." ". b:UserIsTypingComment )
     if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# "^phpComment" && b:UserIsTypingComment
 	return 0
     else
@@ -665,7 +675,12 @@ function! IslinePHP (lnum, tofind) " {{{
     " ask to syntax what is its name
     let synname = synIDattr(synID(a:lnum, coltotest, 0), "name")
 
-    " DEBUG " call DebugPrintReturn(synname)
+    " don't see string content as php
+    if synname == 'phpStringSingle' || synname == 'phpStringDouble' || synname == 'phpBacktick'
+	return ""
+    end
+
+    " DEBUG call DebugPrintReturn(synname)
     if get(s:SynPHPMatchGroups, synname) || synname =~ '^php' ||  synname =~? '^javaScript'
 	return synname
     else
@@ -826,6 +841,7 @@ function! GetPhpIndent()
     " Find an executable php code line above the current line.
     let lnum = prevnonblank(v:lnum - 1)
     let last_line = getline(lnum)
+    let endline= s:endline
 
     " If we aren't in php code, then there is something we have to find
     if b:InPHPcode_tofind!=""
@@ -879,6 +895,12 @@ function! GetPhpIndent()
 		let b:InPHPcode_and_script = 1
 	    endif
 
+	    " was last line a very bad idea? (multiline string definition)
+	elseif last_line =~ '^[^''"`]\+[''"`]$' " a string identifier with nothing after it and no other string identifier before
+	    " DEBUG call DebugPrintReturn( 'mls dcl')
+	    let b:InPHPcode = 0
+	    let b:InPHPcode_tofind = substitute( last_line, '^.*\([''"`]\).*$', '^[^\1]*\1[;,]$', '')
+	    " DEBUG call DebugPrintReturn( 'mls dcl, to find:' . b:InPHPcode_tofind)
 	    " Was last line the start of a HereDoc ?
 	elseif last_line =~? '<<<''\=\a\w*''\=$'
 	    let b:InPHPcode = 0
@@ -962,7 +984,7 @@ function! GetPhpIndent()
     endif
 
     " put HereDoc end tags at start of lines
-    if cline =~? '^\s*\a\w*;$\|^\a\w*$' && cline !~? s:notPhpHereDoc
+    if cline =~? '^\s*\a\w*;$\|^\a\w*$\|^\s*[''"`][;,]' && cline !~? s:notPhpHereDoc
 	return 0
     endif " }}}
 
@@ -975,7 +997,6 @@ function! GetPhpIndent()
     let last_line = getline(lnum)
     " by default
     let ind = indent(lnum)
-    let endline= s:endline
 
     if ind==0 && b:PHP_default_indenting
 	let ind = b:PHP_default_indenting
@@ -1040,7 +1061,7 @@ function! GetPhpIndent()
     " used to prevent redundant tests in the last part of the script
     let LastLineClosed = 0
 
-    let terminated = '\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.endline
+    let terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.endline.'\)\|^[^''"`]*[''"`]$'
     " What is a terminated line?
     " - a line terminated by a ";" optionally followed by a "?>" or "}"
     " - a HEREDOC starter line (the content of such block is never seen by this script)
