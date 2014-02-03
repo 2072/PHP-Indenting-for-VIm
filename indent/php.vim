@@ -41,22 +41,22 @@
 "	silently remove them when VIM load this script (at each bufread).
 "
 "
-" Changes: 1.41         - Fix handing of ^}\s*else\n{ blocks which were not
-"                         detected as new blocks and resulted in wrong indentation.
+" Changes: 1.41		- Fix handing of ^}\s*else\n{ blocks which were not
+"			  detected as new blocks and resulted in wrong indentation.
 "
-"                       - Fix issue #23 where the script could hang in some
-"                         specific cases involving closing braces at column 0;
+"			- Fix issue #23 where the script could hang in some
+"			  specific cases involving closing braces at column 0;
 "
-"                       - Fix issue #6 where nested switches would not indent
-"                         correctly.
+"			- Fix issue #6 where nested switches would not indent
+"			  correctly.
 "
-" Changes: 1.40         - Added the 'final' keyword as a block starter so final
-"                         classes' code is indented correctly.
+" Changes: 1.40		- Added the 'final' keyword as a block starter so final
+"			  classes' code is indented correctly.
 "
-"                       - No longer add 'w' to formatoptions VIm' setting as
-"                         no other file-type plug-in uses it by default. This
-"                         prevents leaving trailing white spaces when text
-"                         wrapping.
+"			- No longer add 'w' to formatoptions VIm' setting as
+"			  no other file-type plug-in uses it by default. This
+"			  prevents leaving trailing white spaces when text
+"			  wrapping.
 "
 " Changes: 1.39		- Also add 'StorageClass' syntax identifier (with an uppercase C) as it
 "			  also exists in the syntax file.
@@ -523,9 +523,9 @@ function! Skippmatch2()
     " Skip opening /* if they are inside a string or preceded  by a single
     " line comment starter
     if line =~ "\\([\"']\\).*/\\*.*\\1" || line =~ '\%(//\|#\).*/\*'
-        return 1
+	return 1
     else
-        return 0
+	return 0
     endif
 endfun
 
@@ -622,8 +622,8 @@ function! FindTheSwitchIndent (lnum) " {{{
     if getline(test) =~ '^\s*}'
 	let test = GetLastRealCodeLNum(FindOpenBracket(test) - 1)
 
-        " Put us on the line above the block starter if it's a switch since
-        " it's not the one we want.
+	" Put us on the line above the block starter if it's a switch since
+	" it's not the one we want.
 	if getline(test) =~ '^\s*switch\>'
 	    let test = GetLastRealCodeLNum(test - 1)
 	endif
@@ -1133,13 +1133,13 @@ function! GetPhpIndent()
 		" find the opening '{'
 
 		call cursor(last_line_num, 1)
-                if previous_line !~ '^}'
-                    call search('}\|;\s*}'.endline, 'W')
-                end
+		if previous_line !~ '^}'
+		    call search('}\|;\s*}'.endline, 'W')
+		end
 		let oldLastLine = last_line_num
 		let last_line_num = searchpair('{', '', '}', 'bW', 'Skippmatch()')
 
-                " DEBUG call DebugPrintReturn("on line:" . line(".") . " { of } is on line " . last_line_num . ' } was on ' . oldLastLine)
+		" DEBUG call DebugPrintReturn("on line:" . line(".") . " { of } is on line " . last_line_num . ' } was on ' . oldLastLine)
 		" if the '{' is alone on the line get the line before
 		if oldLastLine == last_line_num || getline(last_line_num) =~ '^\s*{'
 		    let last_line_num = GetLastRealCodeLNum(last_line_num - 1)
@@ -1303,4 +1303,4 @@ function! GetPhpIndent()
     return ind + addSpecial
 endfunction
 
-" vim: set ts=8 sw=4 sts=4:
+" vim: set ts=8 sw=4 sts=4 nosta noet:
