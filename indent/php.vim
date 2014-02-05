@@ -661,7 +661,7 @@ function! IslinePHP (lnum, tofind) " {{{
     if a:tofind==""
 	" This correct the issue where lines beginning by a
 	" single or double quote were not indented in some cases.
-	let tofind = "^\\s*[\"']*\\s*\\zs\\S"
+	let tofind = "^\\s*[\"'`]*\\s*\\zs\\S"
     else
 	let tofind = a:tofind
     endif
@@ -677,7 +677,11 @@ function! IslinePHP (lnum, tofind) " {{{
 
     " don't see string content as php
     if synname == 'phpStringSingle' || synname == 'phpStringDouble' || synname == 'phpBacktick'
-	return ""
+	if cline !~ '^\s*[''"`]'
+	    return ""
+	else
+	    return synname
+	end
     end
 
     " DEBUG call DebugPrintReturn(synname)
