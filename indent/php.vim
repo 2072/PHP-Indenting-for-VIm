@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 February 3rd
-" Version:	1.42
+" Last Change:	2014 February 21st
+" Version:	1.43
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.43		- Fix issue #17 where closures' content would get
+"			  extra indenting.
 "
 " Changes: 1.42		- Added support (with some restrictions) for
 "			  multi-line string declarations (issue #22).
@@ -1093,10 +1096,11 @@ function! GetPhpIndent()
 	let previous_line = last_line
 	let last_line_num = lnum
 
+	" DEBUG call DebugPrintReturn(1099)
 	" let's find the indent of the block starter (if, while, for, etc...)
 	while last_line_num > 1
 
-	    if previous_line =~ '^\s*\%(' . s:blockstart . '\|\%([a-zA-Z]\s*\)*function\)'
+	    if previous_line =~ '^\s*\%(' . s:blockstart . '\)\|\<function\>\%(\s[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*)'.endline
 
 		let ind = indent(last_line_num)
 
