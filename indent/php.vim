@@ -4,7 +4,7 @@
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
 " Last Change:	2014 March 5th
-" Version:	1.44
+" Version:	1.45 BETA
 "
 "
 "	Type :help php-indent for available options
@@ -40,7 +40,13 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
-" Changes: 1.44         - Fix issue #31 introduced in 1.43
+" Changes: 1.45		- Implemented support for multi-line block
+"			  declarations (issue #4).
+"
+"			- Other small and very specific issues were discovered
+"			  and fixed while implementing this.
+"
+" Changes: 1.44		- Fix issue #31 introduced in 1.43
 "
 " Changes: 1.43		- Fix issue #17 where closures' content would get
 "			  extra indenting.
@@ -423,16 +429,27 @@ if exists("*GetPhpIndent")
     call ResetPhpOptions()
     finish " XXX -- comment this line for easy dev
 endif
-
-let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
-let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
 " setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
+let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\)'
+let s:functionDecl = '\<function\>\%(\s\+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*'
+let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
+let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.s:endline.'\)\|^[^''"`]*[''"`]$'
+let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
 
+
+
+let s:escapeDebugStops = 0
 function! DebugPrintReturn(scriptLine)
 
-    echo "debug:" . a:scriptLine
-    call getchar()
+    if ! s:escapeDebugStops 
+	echo "debug:" . a:scriptLine
+	let c = getchar()
+	if c == "\<Del>"
+	    let s:escapeDebugStops = 1
+	end
+    endif
 
 endfunction
 
@@ -558,10 +575,24 @@ function! Skippmatch()	" {{{
     endif
 endfun " }}}
 
-function! FindOpenBracket(lnum) " {{{
+function! FindOpenBracket(lnum, blockStarter) " {{{
     " set the cursor to the start of the lnum line
     call cursor(a:lnum, 1)
-    return searchpair('{', '', '}', 'bW', 'Skippmatch()')
+    let line = searchpair('{', '', '}', 'bW', 'Skippmatch()')
+
+    if a:blockStarter == 1
+	while line > 1 
+	    let linec = getline(line)
+
+	    if linec =~ s:terminated || linec =~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+		break
+	    endif
+
+	    let line = GetLastRealCodeLNum(line - 1)
+	endwhile
+    endif
+
+    return line
 endfun " }}}
 
 function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
@@ -589,7 +620,7 @@ function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
 
     " A closing bracket? let skip the whole block to save some recursive calls
     if getline(beforeelse) =~ '^\s*}'
-	let beforeelse = FindOpenBracket(beforeelse)
+	let beforeelse = FindOpenBracket(beforeelse, 0)
 
 	" Put us on the block starter
 	if getline(beforeelse) =~ '^\s*{'
@@ -634,7 +665,7 @@ function! FindTheSwitchIndent (lnum) " {{{
 
     " A closing bracket? let skip the whole block to save some recursive calls
     if getline(test) =~ '^\s*}'
-	let test = GetLastRealCodeLNum(FindOpenBracket(test) - 1)
+	let test = GetLastRealCodeLNum(FindOpenBracket(test, 0) - 1)
 
 	" Put us on the line above the block starter if it's a switch since
 	" it's not the one we want.
@@ -695,9 +726,6 @@ function! IslinePHP (lnum, tofind) " {{{
 	return ""
     endif
 endfunction " }}}
-
-let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|catch\>\)'
 
 " make sure the options needed for this script to work correctly are set here
 " for the last time. They could have been overridden by any 'onevent'
@@ -1020,9 +1048,9 @@ function! GetPhpIndent()
     " Search the matching open bracket (with searchpair()) and set the indent of cline
     " to the indent of the matching line. (unless it's a VIm folding end tag)
     if cline =~ '^\s*}\%(}}\)\@!'
-	let ind = indent(FindOpenBracket(v:lnum))
+	let ind = indent(FindOpenBracket(v:lnum, 1))
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
-	" DEBUG call DebugPrintReturn("1002 " . FindOpenBracket(v:lnum) )
+	" DEBUG call DebugPrintReturn("1002 " . FindOpenBracket(v:lnum, 1) )
 	return ind
     endif
 
@@ -1069,7 +1097,7 @@ function! GetPhpIndent()
     " used to prevent redundant tests in the last part of the script
     let LastLineClosed = 0
 
-    let terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.endline.'\)\|^[^''"`]*[''"`]$'
+    let terminated = s:terminated
     " What is a terminated line?
     " - a line terminated by a ";" optionally followed by a "?>" or "}"
     " - a HEREDOC starter line (the content of such block is never seen by this script)
@@ -1101,7 +1129,7 @@ function! GetPhpIndent()
 	" let's find the indent of the block starter (if, while, for, etc...)
 	while last_line_num > 1
 
-	    if previous_line =~ '^\s*\%(' . s:blockstart . '\)\|\<function\>\%(\s\+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*'.endline
+	    if previous_line =~ terminated || previous_line =~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . endline
 
 		let ind = indent(last_line_num)
 
@@ -1114,7 +1142,7 @@ function! GetPhpIndent()
 		return ind
 	    endif
 
-	    let last_line_num = last_line_num - 1
+	    let last_line_num = GetLastRealCodeLNum(last_line_num - 1)
 	    let previous_line = getline(last_line_num)
 	endwhile
 
@@ -1278,7 +1306,19 @@ function! GetPhpIndent()
 	" declaration) with already one parameter on the opening ( line
 	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
 
-	    if !b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{'
+	    let dontIndent = 0
+	    " the last line contains a '{' with other meaningful characters
+	    " before it but is not a block starter / function declaration.
+	    " It should mean that it's a multi-line block declaration and that
+	    " the previous line is already indented...
+	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+		let dontIndent = 1
+	    endif
+
+	    " DEBUG call DebugPrintReturn(1290. '   ' . dontIndent)
+	    " indent if we don't want braces at code level or if the last line
+	    " is not a lonely '{' (default indent for the if block)
+	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
 		let ind = ind + &sw
 	    endif
 
@@ -1286,7 +1326,7 @@ function! GetPhpIndent()
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
 
-		" DEBUG call DebugPrintReturn(1251)
+		" DEBUG call DebugPrintReturn(1299)
 		return ind + addSpecial
 	    endif
 
@@ -1329,8 +1369,8 @@ function! GetPhpIndent()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
-    " DEBUG call DebugPrintReturn(1300)
+    " DEBUG call DebugPrintReturn(1342)
     return ind + addSpecial
 endfunction
 
-" vim: set ts=8 sw=4 sts=4 nosta noet:
+" vim:ts=8:sw=4:sts=4:nosta:noet:
