@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 March 5th
-" Version:	1.45 BETA
+" Last Change:	2014 March 14th
+" Version:	1.46
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.46		- Fix issue #32 ('case:/default:' indentation issues in
+"			  complex 'switch' blocks)
 "
 " Changes: 1.45		- Implemented support for multi-line block
 "			  declarations (issue #4).
@@ -431,6 +434,9 @@ if exists("*GetPhpIndent")
 endif
 " setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
+" enable debug calls: :%s /" DEBUG //g
+" disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
+
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\)'
 let s:functionDecl = '\<function\>\%(\s\+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*'
@@ -664,7 +670,8 @@ function! FindTheSwitchIndent (lnum) " {{{
     end
 
     " A closing bracket? let skip the whole block to save some recursive calls
-    if getline(test) =~ '^\s*}'
+    while getline(test) =~ '^\s*}' && test > 1
+	" DEBUG call DebugPrintReturn(test . ' is a } skipping...')
 	let test = GetLastRealCodeLNum(FindOpenBracket(test, 0) - 1)
 
 	" Put us on the line above the block starter if it's a switch since
@@ -672,14 +679,18 @@ function! FindTheSwitchIndent (lnum) " {{{
 	if getline(test) =~ '^\s*switch\>'
 	    let test = GetLastRealCodeLNum(test - 1)
 	endif
-    endif
+	" DEBUG call DebugPrintReturn('skipped to '. test)
+    endwhile
 
     " did we find it?
     if getline(test) =~# '^\s*switch\>'
+	" DEBUG call DebugPrintReturn('found the switch on ' . test)
 	return indent(test)
     elseif getline(test) =~# s:defaultORcase
+	" DEBUG call DebugPrintReturn('found a default/case on ' . test)
 	return indent(test) - &sw * b:PHP_vintage_case_default_indent
     else
+	" DEBUG call DebugPrintReturn('recursing from ' . test)
 	return FindTheSwitchIndent(test)
     endif
 
