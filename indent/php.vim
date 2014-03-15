@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 March 14th
-" Version:	1.46
+" Last Change:	2014 March 16th
+" Version:	1.47
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,8 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.47		- Code in traits was not indented
 "
 " Changes: 1.46		- Fix issue #32 ('case:/default:' indentation issues in
 "			  complex 'switch' blocks)
@@ -438,7 +440,7 @@ endif
 " disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\)'
 let s:functionDecl = '\<function\>\%(\s\+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*'
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.s:endline.'\)\|^[^''"`]*[''"`]$'
