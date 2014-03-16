@@ -40,7 +40,11 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
-" Changes: 1.48		- The 'use' keyword is now seen as a block starter.
+" Changes: 1.48		- The 'use' keyword is now seen as a block starter (as
+"			  used to handle trait conflicts resolution).
+"
+"			- Fix a issue with lines following a {} block defined
+"			  on a single line if this {} block was just beneath a '{'
 "
 " Changes: 1.47		- Code in traits was not indented
 "
@@ -436,9 +440,9 @@ if exists("*GetPhpIndent")
     call ResetPhpOptions()
     finish " XXX -- comment this line for easy dev
 endif
-" setlocal debug=msg " XXX -- do not comment this line when modifying this file
+"setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
-" enable debug calls: :%s /" DEBUG //g
+" enable debug calls: :%s /" DEBUG \zec//g
 " disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
 
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
@@ -1200,9 +1204,10 @@ function! GetPhpIndent()
 	" same indentation and with the first of these two lines terminated by
 	" a ; or by a }...
 
+	let isSingleLineBlock = 0
 	while 1
 	    " let's skip '{}' blocks
-	    if previous_line =~ '^\s*}\|;\s*}'.endline " XXX
+	    if ! isSingleLineBlock && previous_line =~ '^\s*}\|;\s*}'.endline " XXX
 		" find the opening '{'
 
 		call cursor(last_line_num, 1)
@@ -1213,15 +1218,22 @@ function! GetPhpIndent()
 		let last_line_num = searchpair('{', '', '}', 'bW', 'Skippmatch()')
 
 		" DEBUG call DebugPrintReturn("on line:" . line(".") . " { of } is on line " . last_line_num . ' } was on ' . oldLastLine)
-		" if the '{' is alone on the line get the line before
-		if oldLastLine == last_line_num || getline(last_line_num) =~ '^\s*{'
+		" if the '{' is alone on the line, get the line before
+		if getline(last_line_num) =~ '^\s*{'
 		    let last_line_num = GetLastRealCodeLNum(last_line_num - 1)
+		elseif oldLastLine == last_line_num
+		    " if we're on a {}, then there was nothing to skip in the
+		    " first place...
+		    let isSingleLineBlock = 1
+		    continue
 		endif
 
 		let previous_line = getline(last_line_num)
 
 		continue
 	    else
+		let isSingleLineBlock = 0
+		" DEBUG call DebugPrintReturn(1230 . " previous_line: " . previous_line)
 		" At this point we know that the previous_line isn't a closing
 		" '}' so we can check if we really are in such a structure.
 
@@ -1251,10 +1263,11 @@ function! GetPhpIndent()
 		let previous_line = getline(last_line_num)
 
 
+		" DEBUG call DebugPrintReturn(1260 . " previous_line: " . previous_line)
 		" If we find a '{' or a case/default then we are inside that block so lets
 		" indent properly... Like the line following that block starter
 		if previous_line =~# s:defaultORcase.'\|{'.endline
-		    " DEBUG call DebugPrintReturn(1189)
+		    " DEBUG call DebugPrintReturn(1264 . ' last_match: ' . last_match)
 		    break
 		endif
 
@@ -1262,7 +1275,7 @@ function! GetPhpIndent()
 		" but it makes it work a little faster in some (rare) cases.
 		" We verify if we are at the top of a non '{}' struct.
 		if after_previous_line=~# '^\s*'.s:blockstart.'.*)'.endline && previous_line =~# '[;}]'.endline
-		    " DEBUG call DebugPrintReturn(1196)
+		    " DEBUG call DebugPrintReturn(1272)
 		    break
 		endif
 
@@ -1273,7 +1286,7 @@ function! GetPhpIndent()
 		    " it's useless to match ')$' since the lines couldn't have
 		    " the same indent...
 		    if previous_line =~# '\%(;\|^\s*}\)'.endline || last_line_num < 1
-			" DEBUG call DebugPrintReturn(last_match)
+			" DEBUG call DebugPrintReturn(1283 . " last_match: " . last_match . " - previous_line (".last_line_num .'): ' . previous_line)
 			break
 		    endif
 		endif
@@ -1287,7 +1300,7 @@ function! GetPhpIndent()
 	    " from acting in some special cases
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
-	    " DEBUG call DebugPrintReturn(1222)
+	    " DEBUG call DebugPrintReturn(1297 . " last match:" . last_match)
 	    return ind + addSpecial
 	endif
 	" if nothing was done lets the old script continue
