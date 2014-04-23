@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 April 3rd
-" Version:	1.49
+" Last Change:	2014 April 23rd
+" Version:	1.50
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.50		- Allow the PHP_autoformatcomment option (default on)
+"			  to work for any filetype containing 'php'.
 "
 " Changes: 1.49		- Added 'finally' as a block starter
 "
