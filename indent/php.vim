@@ -459,7 +459,7 @@ let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
 let s:escapeDebugStops = 0
 function! DebugPrintReturn(scriptLine)
 
-    if ! s:escapeDebugStops 
+    if ! s:escapeDebugStops
 	echo "debug:" . a:scriptLine
 	let c = getchar()
 	if c == "\<Del>"
@@ -597,7 +597,7 @@ function! FindOpenBracket(lnum, blockStarter) " {{{
     let line = searchpair('{', '', '}', 'bW', 'Skippmatch()')
 
     if a:blockStarter == 1
-	while line > 1 
+	while line > 1
 	    let linec = getline(line)
 
 	    if linec =~ s:terminated || linec =~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
@@ -758,7 +758,7 @@ if ! s:autoresetoptions
 endif
 
 function! ResetPhpOptions()
-    if ! b:optionsset && &filetype == "php"
+    if ! b:optionsset && &filetype =~ "php"
 	if b:PHP_autoformatcomment
 
 	    " Set the comment setting to something correct for PHP
