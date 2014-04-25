@@ -7,8 +7,13 @@ Please, visit [the homepage](http://www.2072productions.com/to/phpindent.txt) of
 
 ### Options
 
-just type `:help php-indent` inside VIm.
+Just type `:help php-indent` inside VIm.
 
+### Optional updated Syntax script
+
+Feel free to use [my updated version](https://github.com/2072/vim-syntax-for-PHP) of the official VIm syntax
+script for PHP which fixes a few issues and add support for some of the newest PHP
+features (see the [change log](https://github.com/2072/vim-syntax-for-PHP/commits/master) for the details).
 
 ## Install
 
