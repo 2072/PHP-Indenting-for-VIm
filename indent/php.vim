@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 April 23rd
-" Version:	1.50
+" Last Change:	2014 June 16th
+" Version:	1.51
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.51		- Fix issue #34 where indentation could get wrong with
+"			  arrays defined using the short [] declaration.
 "
 " Changes: 1.50		- Allow the PHP_autoformatcomment option (default on)
 "			  to work for any filetype containing 'php'.
@@ -584,7 +587,7 @@ function! Skippmatch()	" {{{
     " times faster but you may have troubles with '{' inside comments or strings
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
-	" DEBUG call DebugPrintReturn(synname ." ". b:UserIsTypingComment )
+	" DEBUG call DebugPrintReturn('Skippmatch():'.synname ." ". b:UserIsTypingComment .' online: ' . line("."))
     if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# "^phpComment" && b:UserIsTypingComment
 	return 0
     else
@@ -1337,7 +1340,7 @@ function! GetPhpIndent()
 
 	" if the last line is a [{(\[]$ or a multiline function call (or array
 	" declaration) with already one parameter on the opening ( line
-	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(]'.endline
+	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(\[]'.endline
 
 	    let dontIndent = 0
 	    " the last line contains a '{' with other meaningful characters
@@ -1348,7 +1351,7 @@ function! GetPhpIndent()
 		let dontIndent = 1
 	    endif
 
-	    " DEBUG call DebugPrintReturn(1290. '   ' . dontIndent)
+	    " DEBUG call DebugPrintReturn(1290. '   ' . dontIndent . ' lastline: ' . last_line)
 	    " indent if we don't want braces at code level or if the last line
 	    " is not a lonely '{' (default indent for the if block)
 	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
@@ -1370,6 +1373,7 @@ function! GetPhpIndent()
 	elseif last_line =~ '\S\+\s*),'.endline
 	    call cursor(lnum, 1)
 	    call search('),'.endline, 'W') " line never begins with ) so no need for 'c' flag
+	    " DEBUG call DebugPrintReturn(1373)
 	    let openedparent = searchpair('(', '', ')', 'bW', 'Skippmatch()')
 	    if openedparent != lnum
 		let ind = indent(openedparent)
