@@ -4,7 +4,7 @@
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
 " Last Change:	2014 June 16th
-" Version:	1.51
+" Version:	1.52
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,11 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.52		- Fix an edge case in conditional block declarations
+"			  when the ')' of the condition is put on the same
+"			  line as the following '{' (complement to issue #4)
 "
 " Changes: 1.51		- Fix issue #34 where indentation could get wrong with
 "			  arrays defined using the short [] declaration.
@@ -746,7 +751,7 @@ function! IslinePHP (lnum, tofind) " {{{
 	end
     end
 
-    " DEBUG call DebugPrintReturn(synname)
+    " DEBUG call DebugPrintReturn('IslinePHP(): ' . synname)
     if get(s:SynPHPMatchGroups, synname) || synname =~ '^php' ||  synname =~? '^javaScript'
 	return synname
     else
@@ -1347,7 +1352,7 @@ function! GetPhpIndent()
 	    " before it but is not a block starter / function declaration.
 	    " It should mean that it's a multi-line block declaration and that
 	    " the previous line is already indented...
-	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*)\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
 		let dontIndent = 1
 	    endif
 
