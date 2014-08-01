@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 June 16th
-" Version:	1.52
+" Last Change:	2014 August 1st
+" Version:	1.53
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.53		- Add support for `label:` (used with `goto`)
+"		        - Add `0]` to indentkeys
 "
 " Changes: 1.52		- Fix an edge case in conditional block declarations
 "			  when the ')' of the condition is put on the same
@@ -458,11 +461,12 @@ endif
 " enable debug calls: :%s /" DEBUG \zec//g
 " disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
 
+let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
-let s:functionDecl = '\<function\>\%(\s\+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\)\=\s*(.*'
+let s:functionDecl = '\<function\>\%(\s\+'.s:PHP_validVariable.'\)\=\s*(.*'
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
-let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\)'.s:endline.'\)\|^[^''"`]*[''"`]$'
+let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|^\s*'.s:PHP_validVariable.':\)'.s:endline.'\)\|^[^''"`]*[''"`]$'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
 
 
@@ -1105,7 +1109,7 @@ function! GetPhpIndent()
     " if optimized mode is active and nor current or previous line are an 'else'
     " or the end of a possible bracketless thing then indent the same as the previous
     " line
-    if last_line =~ '[;}]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase
+    if last_line =~ '[;}:]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase
 	if ind==b:PHP_default_indenting
 	    " DEBUG call DebugPrintReturn(1034)
 	    " if no indentation for the previous line
@@ -1124,6 +1128,7 @@ function! GetPhpIndent()
     " - a line terminated by a ";" optionally followed by a "?>" or "}"
     " - a HEREDOC starter line (the content of such block is never seen by this script)
     " - a "}" not followed by a "{"
+    " - a goto's label
 
     let unstated   = '\%(^\s*'.s:blockstart.'.*)\|\%(//.*\)\@<!\<e'.'lse\>\)'.endline
     " What is an unstated line?
@@ -1318,7 +1323,7 @@ function! GetPhpIndent()
 
 
     if ind == b:PHP_default_indenting
-	if last_line =~ terminated
+	if last_line =~ terminated && last_line !~# s:defaultORcase
 	    let LastLineClosed = 1
 	endif
     endif
