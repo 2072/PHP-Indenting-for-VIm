@@ -437,7 +437,7 @@ setlocal nocindent
 setlocal nolisp
 
 setlocal indentexpr=GetPhpIndent()
-setlocal indentkeys=0{,0},0),:,!^F,o,O,e,*<Return>,=?>,=<?,=*/
+setlocal indentkeys=0{,0},0),0],:,!^F,o,O,e,*<Return>,=?>,=<?,=*/
 
 
 
