@@ -596,8 +596,6 @@ function! Skippmatch()	" {{{
     if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# "^phpComment" && b:UserIsTypingComment
 	return 0
     else
-"	echo "\"" . synname . "\"  " . getline(line("."));
-"	call getchar()
 	return 1
     endif
 endfun " }}}
@@ -623,10 +621,6 @@ function! FindOpenBracket(lnum, blockStarter) " {{{
 endfun " }}}
 
 function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
-    " A very clever recoursive function created by me (John Wellesz) that find the "if" corresponding to an
-    " "else". This function can easily be adapted for other languages :)
-    " 2010-07-25 -- Wow! it seems I was very proud of myself, I wouldn't write
-    " such a comment nowadays.
 
     if getline(a:lnum) =~# '^\s*}\s*else\%(if\)\=\>'
 	" we do this so we can find the opened bracket to speed up the process
@@ -680,9 +674,6 @@ endfunction " }}}
 let s:defaultORcase = '^\s*\%(default\|case\).*:'
 
 function! FindTheSwitchIndent (lnum) " {{{
-    " Yes that's right, another very clever recursive function by the
-    " author of the famous FindTheIfOfAnElse()
-
 
     let test = GetLastRealCodeLNum(a:lnum - 1)
 
@@ -736,7 +727,7 @@ function! IslinePHP (lnum, tofind) " {{{
     " ignore case
     let tofind = tofind . '\c'
 
-    "find the first non blank char in the current line
+    " find the first non blank char in the current line
     let coltotest = match (cline, tofind) + 1
 
     " ask to syntax what is its name
@@ -799,7 +790,6 @@ function! GetPhpIndent()
     "########### MAIN INDENT FUNCTION #############
     "##############################################
 
-    " variable added on 2005-01-15 to make <script> tags really indent correctly (not pretty at all :-/ )
     let b:GetLastRealCodeLNum_ADD = 0
 
     " This detect if the user is currently typing text between each call
@@ -1142,8 +1132,6 @@ function! GetPhpIndent()
     "	the end of line
 
     " if the current line is an 'else' starting line
-    " (to match an 'else' preceded by a '}' is irrelevant and futile - see
-    " code above)
     if ind != b:PHP_default_indenting && cline =~# '^\s*else\%(if\)\=\>'
 	" prevent optimized to work at next call  XXX why ?
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
@@ -1202,7 +1190,7 @@ function! GetPhpIndent()
 	"
 	"			$thing =
 	"				"something";
-    elseif (ind != b:PHP_default_indenting || last_line =~ '^[)\]]' ) && last_line =~ terminated " Added || last_line =~ '^)' on 2007-12-30 (array indenting problem broke other things)
+    elseif (ind != b:PHP_default_indenting || last_line =~ '^[)\]]' ) && last_line =~ terminated
 	" If we are here it means that the previous line is:
 	" - a *;$ line
 	" - a [beginning-blanck] } followed by anything but a { $
@@ -1309,8 +1297,6 @@ function! GetPhpIndent()
 	if indent(last_match) != ind
 	    " let's use the indent of the last line matched by the algorithm above
 	    let ind = indent(last_match)
-	    " line added in version 1.02 to prevent optimized mode
-	    " from acting in some special cases
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
 	    " DEBUG call DebugPrintReturn(1297 . " last match:" . last_match)
@@ -1398,7 +1384,6 @@ function! GetPhpIndent()
 	    "	    a default/case if yes indent else let since it must have
 	    "	    been indented correctly already
 
-	"elseif cline !~ '^\s*{' && AntepenultimateLine =~ '\%(;\%(\s*?>\)\=\|<<<\a\w*\|{\|^\s*'.s:blockstart.'.*)\)'.endline.'\|^\s*}\|'.s:defaultORcase
 	elseif AntepenultimateLine =~ '\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . s:defaultORcase
 	    let ind = ind + &sw
 	endif
