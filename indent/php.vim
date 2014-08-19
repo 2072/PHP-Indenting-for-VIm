@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 August 1st
-" Version:	1.53
+" Last Change:	2014 August 19th
+" Version:	1.54
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.54		- Add support for 'phpDocComment' syntax identifier
 "
 "
 " Changes: 1.53		- Add support for `label:` (used with `goto`)
@@ -597,7 +600,7 @@ function! Skippmatch()	" {{{
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
 	" DEBUG call DebugPrintReturn('Skippmatch():'.synname ." ". b:UserIsTypingComment .' online: ' . line("."))
-    if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# "^phpComment" && b:UserIsTypingComment
+    if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# '^php\%(Doc\)\?Comment' && b:UserIsTypingComment
 	return 0
     else
 	return 1
@@ -865,7 +868,7 @@ function! GetPhpIndent()
 		let b:InPHPcode = 1
 		let b:InPHPcode_tofind = ""
 
-		if synname =~# "^phpComment"
+		if synname =~# '^php\%(Doc\)\?Comment'
 		    let b:UserIsTypingComment = 1
 		else
 		    let b:UserIsTypingComment = 0
