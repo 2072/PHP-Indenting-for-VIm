@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 August 21st
-" Version:	1.55
+" Last Change:	2014 August 22nd
+" Version:	1.56
 "
 "
 "	Type :help php-indent for available options
@@ -41,14 +41,19 @@
 "	silently remove them when VIM load this script (at each bufread).
 "
 "
+" Changes: 1.56		- Enhance closure support in array definition
+"			- Correctly indent line starting by a /**/ comment
+"			- Don't indent last line of multiline string
+"			  declarations.
+"
 " Changes: 1.55		- Remove optimization related to labels detection that
 "			  could trigger indent issues when URLs are found in
-"                         comments at end of lines...
+"			  comments at end of lines...
 "
 " Changes: 1.54		- Add support for 'phpDocComment' syntax identifier
 "
 " Changes: 1.53		- Add support for `label:` (used with `goto`)
-"		        - Add `0]` to indentkeys
+"			- Add `0]` to indentkeys
 "
 " Changes: 1.52		- Fix an edge case in conditional block declarations
 "			  when the ')' of the condition is put on the same
