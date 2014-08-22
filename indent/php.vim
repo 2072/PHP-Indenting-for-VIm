@@ -472,6 +472,13 @@ let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
 let s:functionDecl = '\<function\>\%(\s\+'.s:PHP_validVariable.'\)\=\s*(.*'
 let s:endline= '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
+
+" Terminated line?
+    " - a line terminated by a ";" optionally followed by a "?>" or "}"
+    " - a HEREDOC starter line (the content of such block is never seen by this script)
+    " - a "}" not followed by a "{"
+    " - a goto's label
+
 let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|^\s*'.s:PHP_validVariable.':\)'.s:endline.'\)\|^[^''"`]*[''"`]$'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
 
@@ -1147,11 +1154,6 @@ function! GetPhpIndent()
     let LastLineClosed = 0
 
     let terminated = s:terminated
-    " What is a terminated line?
-    " - a line terminated by a ";" optionally followed by a "?>" or "}"
-    " - a HEREDOC starter line (the content of such block is never seen by this script)
-    " - a "}" not followed by a "{"
-    " - a goto's label
 
     let unstated   = '\%(^\s*'.s:blockstart.'.*)\|\%(//.*\)\@<!\<e'.'lse\>\)'.endline
     " What is an unstated line?
@@ -1333,8 +1335,13 @@ function! GetPhpIndent()
 	" if nothing was done lets the old script continue
     endif
 
-    let plinnum = GetLastRealCodeLNum(lnum - 1)
     " previous to last line
+    if (last_line !~ '^\s*}\%(}}\)\@!')
+	let plinnum = GetLastRealCodeLNum(lnum - 1)
+    else
+	let plinnum = GetLastRealCodeLNum(FindOpenBracket(lnum, 1) - 1)
+    endif
+
     let AntepenultimateLine = getline(plinnum)
 
     " REMOVE comments at end of line before treatment
@@ -1403,17 +1410,16 @@ function! GetPhpIndent()
 	elseif last_line =~ '^\s*'.s:blockstart
 	    let ind = ind + &sw
 
-	    " In all other cases if the last line isn't terminated indent 1
-	    " level higher but only if the last line wasn't already indented
-	    " for the same "code event"/reason. IE: if the antepenultimate line is terminated.
+	    " In all other cases if !LastLineClosed indent 1 level higher
+	    " _only_ if the ante-penultimate line _is_ 'closed' or if it's a
+	    " block starter
 	    "
-	    " 2nd explanation:
-	    "	    - Test if the antepenultimate line is terminated or is
-	    "	    a default/case if yes indent else let since it must have
-	    "	    been indented correctly already
+	    " IE: We test the line before the last one to check if we already
+	    " were in this "list"
 
-	elseif AntepenultimateLine =~ '\%(;\%(\s*\%(?>\|}\)\)\=\|<<<''\=\a\w*''\=$\|^\s*}\|{\)'.endline . '\|' . s:defaultORcase
+    elseif AntepenultimateLine =~ '{'.endline || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
 	    let ind = ind + &sw
+	    " DEBUG call DebugPrintReturn(1422 . '  ' . AntepenultimateLine)
 	endif
 
     endif
@@ -1424,7 +1430,7 @@ function! GetPhpIndent()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
-    " DEBUG call DebugPrintReturn(1342)
+    " DEBUG call DebugPrintReturn(1433)
     return ind + addSpecial
 endfunction
 
