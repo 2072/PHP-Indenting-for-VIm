@@ -936,6 +936,7 @@ function! GetPhpIndent()
 	    if b:InPHPcode == -1
 		" leave that last line of less than nothing alone
 		let b:InPHPcode = 1
+		" DEBUG call DebugPrintReturn(939)
 		return -1
 	    end
 
@@ -1027,6 +1028,7 @@ function! GetPhpIndent()
     if cline =~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)'
 	let addSpecial = b:PHP_outdentSLComments
 	if b:PHP_LastIndentedWasComment == 1
+	    " DEBUG call DebugPrintReturn(1031)
 	    return indent(real_PHP_lastindented)
 	endif
 	let b:PHP_LastIndentedWasComment = 1
@@ -1043,8 +1045,10 @@ function! GetPhpIndent()
 	    " if cline == '*'
 	    if last_line =~ '^\s*/\*'
 		" if last_line == '/*'
+		" DEBUG call DebugPrintReturn(1048)
 		return indent(lnum) + 1
 	    else
+		" DEBUG call DebugPrintReturn(1051)
 		return indent(lnum)
 	    endif
 	else
@@ -1052,9 +1056,10 @@ function! GetPhpIndent()
 	endif
     endif
 
-    if !b:PHP_InsideMultilineComment && cline =~ '^\s*/\*' && cline !~ '\*/\s*$'
-	" if cline == '/*' and doesn't end with '*/'
+    " If cline is the start of a _multiline_ /**/ comment
+    if !b:PHP_InsideMultilineComment && cline =~ '^\s*/\*\%(.*\*/\)\@!'
 	if getline(v:lnum + 1) !~ '^\s*\*'
+	    " DEBUG call DebugPrintReturn(1062)
 	    return -1
 	endif
 	let b:PHP_InsideMultilineComment = 1
