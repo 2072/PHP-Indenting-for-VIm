@@ -577,7 +577,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 
     " This is to handle correctly end of script tags; to return the real last php
     " code line else a '?>' could be returned has last_line
-    if b:InPHPcode_and_script && !b:InPHPcode
+    if b:InPHPcode_and_script && 1 > b:InPHPcode
 	let b:InPHPcode_and_script = 0
     endif
 
@@ -746,7 +746,7 @@ function! IslinePHP (lnum, tofind) " {{{
     " don't see string content as php
     if synname == 'phpStringSingle' || synname == 'phpStringDouble' || synname == 'phpBacktick'
 	if cline !~ '^\s*[''"`]'
-	    return ""
+	    return "SpecStringEntrails"
 	else
 	    return synname
 	end
@@ -866,8 +866,16 @@ function! GetPhpIndent()
 	    let synname = IslinePHP (prevnonblank(v:lnum), "")
 	endif
 
+	" DEBUG call DebugPrintReturn(869 . ' synname? ' . synname)
 	if synname!=""
-	    if synname != "phpHereDoc" && synname != "phpHereDocDelimiter"
+	    if synname == "SpecStringEntrails"
+		" the user has done something ugly *stay calm*
+		let b:InPHPcode = -1 " thumb down
+		let b:UserIsTypingComment = 0
+		" All hope is lost at this point, nothing will be indented
+		" further on.
+		let b:InPHPcode_tofind = ""
+	    elseif synname != "phpHereDoc" && synname != "phpHereDocDelimiter" 
 		let b:InPHPcode = 1
 		let b:InPHPcode_tofind = ""
 
@@ -881,7 +889,7 @@ function! GetPhpIndent()
 		    let b:InPHPcode_and_script = 1
 		endif
 
-	    else
+	    elseif 
 		"We are inside an "HereDoc"
 		let b:InPHPcode = 0
 		let b:UserIsTypingComment = 0
@@ -914,9 +922,18 @@ function! GetPhpIndent()
     " If we aren't in php code, then there is something we have to find
     if b:InPHPcode_tofind!=""
 	if cline =~? b:InPHPcode_tofind
-	    let b:InPHPcode = 1
+	    " DEBUG call DebugPrintReturn('tofind found')
 	    let b:InPHPcode_tofind = ""
 	    let b:UserIsTypingComment = 0
+
+	    if b:InPHPcode == -1
+		" leave that last line of less than nothing alone
+		let b:InPHPcode = 1
+		return -1
+	    end
+
+	    let b:InPHPcode = 1
+
 	    if cline =~ '\*/'
 		" End comment tags must be indented like start comment tags
 		call cursor(v:lnum, 1)
@@ -952,7 +969,7 @@ function! GetPhpIndent()
     endif
 
     " ### If we are in PHP code, we test the line before to see if we have to stop indenting
-    if b:InPHPcode
+    if 1 == b:InPHPcode
 
 	" Was last line containing a PHP end tag ?
 	if !b:InPHPcode_and_script && last_line =~ '\%(<?.*\)\@<!?>\%(.*<?\)\@!' && IslinePHP(lnum, '?>')=~"Delimiter"
@@ -966,7 +983,7 @@ function! GetPhpIndent()
 	    " was last line a very bad idea? (multiline string definition)
 	elseif last_line =~ '^[^''"`]\+[''"`]$' " a string identifier with nothing after it and no other string identifier before
 	    " DEBUG call DebugPrintReturn( 'mls dcl')
-	    let b:InPHPcode = 0
+	    let b:InPHPcode = -1
 	    let b:InPHPcode_tofind = substitute( last_line, '^.*\([''"`]\).*$', '^[^\1]*\1[;,]$', '')
 	    " DEBUG call DebugPrintReturn( 'mls dcl, to find:' . b:InPHPcode_tofind)
 	    " Was last line the start of a HereDoc ?
@@ -992,8 +1009,8 @@ function! GetPhpIndent()
 
 
     " Non PHP code is let as it is
-    if !b:InPHPcode && !b:InPHPcode_and_script
-	" DEBUG call DebugPrintReturn(880)
+    if 1 > b:InPHPcode && !b:InPHPcode_and_script
+	" DEBUG call DebugPrintReturn(996 . ' ipc? ' . b:InPHPcode . ' ipcs? ' . b:InPHPcode_and_script)
 	return -1
     endif
 
