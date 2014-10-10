@@ -24,7 +24,7 @@ features (see the [change log](https://github.com/2072/vim-syntax-for-PHP/commit
  1. Install and configure the [Vundle](https://github.com/gmarik/vundle) plug-in manager, [follow the instructions here](https://github.com/gmarik/vundle#quick-start)
  2. Add the following line to your `.vimrc`:
 
-         Bundle '2072/PHP-Indenting-for-VIm'
+         Plugin '2072/PHP-Indenting-for-VIm'
  3. Source your `.vimrc` with `:so %` or otherwise reload your VIm
  4. Run the `:BundleInstall` command
 
