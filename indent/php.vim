@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 August 22nd
-" Version:	1.56
+" Last Change:	2014 November 26th
+" Version:	1.57
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,8 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.57		- Fix an unreported non-blocking syntax error (VimLint)
 "
 " Changes: 1.56		- Enhance closure support in array definition
 "			- Correctly indent line starting by a /**/ comment
@@ -382,7 +384,7 @@ let b:did_indent = 1
 "	experience slowings down while editing, if your code contains only PHP
 "	code you can comment the line below.
 
-let php_sync_method = 0
+let g:php_sync_method = 0
 
 
 " Apply options
@@ -511,8 +513,6 @@ function! GetLastRealCodeLNum(startline) " {{{
     if b:GetLastRealCodeLNum_ADD && b:GetLastRealCodeLNum_ADD == lnum + 1
 	let lnum = b:GetLastRealCodeLNum_ADD
     endif
-
-    let old_lnum = lnum
 
     while lnum > 1
 	let lnum = prevnonblank(lnum)
@@ -848,7 +848,7 @@ function! GetPhpIndent()
 	    let b:PHP_indentinghuge = 0
 	    let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 	endif
-	let b:PHP_lastindented = v:lnum
+	let real_PHP_lastindented = v:lnum
 	let b:PHP_LastIndentedWasComment=0
 	let b:PHP_InsideMultilineComment=0
 	let b:PHP_indentbeforelast = 0
@@ -861,8 +861,11 @@ function! GetPhpIndent()
     elseif v:lnum > b:PHP_lastindented
 	" we are indenting line in > order (we can rely on the line before)
 	let real_PHP_lastindented = b:PHP_lastindented
-	let b:PHP_lastindented = v:lnum
+    else
+	let real_PHP_lastindented = v:lnum
     endif
+
+    let b:PHP_lastindented = v:lnum
 
     " We must detect if we are in PHPCODE or not, but one time only, then
     " we will detect php end and start tags, comments /**/ and HereDoc
@@ -887,7 +890,7 @@ function! GetPhpIndent()
 		" All hope is lost at this point, nothing will be indented
 		" further on.
 		let b:InPHPcode_tofind = ""
-	    elseif synname != "phpHereDoc" && synname != "phpHereDocDelimiter" 
+	    elseif synname != "phpHereDoc" && synname != "phpHereDocDelimiter"
 		let b:InPHPcode = 1
 		let b:InPHPcode_tofind = ""
 
@@ -901,7 +904,7 @@ function! GetPhpIndent()
 		    let b:InPHPcode_and_script = 1
 		endif
 
-	    elseif 
+	    else
 		"We are inside an "HereDoc"
 		let b:InPHPcode = 0
 		let b:UserIsTypingComment = 0
