@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2014 November 26th
-" Version:	1.57
+" Last Change:	2015 January 23rd
+" Version:	1.58
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.58		- Check shiftwidth() instead of 'shiftwidth' (will use
+"			  the 'tabstop' value if 'shiftwidth' is 0)
 "
 " Changes: 1.57		- Fix an unreported non-blocking syntax error (VimLint)
 "
