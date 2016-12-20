@@ -1178,7 +1178,7 @@ function! GetPhpIndent()
     endif
 
     " Check for end of comment and indent it like its beginning
-    if cline =~ '^\s*\*/'
+    if cline =~ '^\s*\*/\?'
 	" End comment tags must be indented like start comment tags
 	call cursor(v:lnum, 1)
 	if cline !~ '^\*/'
@@ -1189,7 +1189,7 @@ function! GetPhpIndent()
 
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 
-	if cline =~ '^\s*\*/'
+	if cline =~ '^\s*\*/\?'
 	    " DEBUG call DebugPrintReturn(1018)
 	    return indent(lnum) + 1
 	else
