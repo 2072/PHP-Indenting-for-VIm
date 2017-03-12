@@ -699,6 +699,20 @@ function! FindOpenBracket(lnum, blockStarter) " {{{
     return line
 endfun " }}}
 
+let s:blockChars = {'{':1, '[': 1, '(': 1, ')':-1, ']':-1, '}':-1}
+function! BalanceDirection (str)
+
+    let balance = 0
+
+    for c in split(a:str, '\zs')
+	if has_key(s:blockChars, c)
+	    let balance += s:blockChars[c]
+	endif
+    endfor
+
+    return balance
+endfun
+
 function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
 
     if getline(a:lnum) =~# '^\s*}\s*else\%(if\)\=\>'
@@ -1156,7 +1170,7 @@ function! GetPhpIndent()
 
     " Find an executable php code line above the current line.
     let lnum = GetLastRealCodeLNum(v:lnum - 1)
-	" DEBUG call DebugPrintReturn(1121 . "last php line: " . lnum)
+    " DEBUG call DebugPrintReturn(1121 . " last php line: " . lnum)
 
     " last line
     let last_line = getline(lnum)
@@ -1436,7 +1450,7 @@ function! GetPhpIndent()
 
 	" if the last line is a [{(\[]$ or a multiline function call (or array
 	" declaration) with already one parameter on the opening ( line
-	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(\[]'.endline
+	if last_line =~# '[{(\[]'.endline || last_line =~? '\h\w*\s*(.*,$' && AntepenultimateLine !~ '[,(\[]'.endline && BalanceDirection(last_line) > 0
 
 	    let dontIndent = 0
 	    " the last line contains a '{' with other meaningful characters
@@ -1447,10 +1461,11 @@ function! GetPhpIndent()
 		let dontIndent = 1
 	    endif
 
-	    " DEBUG call DebugPrintReturn(1290. '   ' . dontIndent . ' lastline: ' . last_line)
+	    " DEBUG call DebugPrintReturn(1450. '   ' . dontIndent . ' lastline: ' . last_line . ' balance? ' . BalanceDirection(last_line))
 	    " indent if we don't want braces at code level or if the last line
 	    " is not a lonely '{' (default indent for the if block)
 	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
+		" DEBUG call DebugPrintReturn(1454. '  +1 indent ')
 		let ind = ind + s:sw()
 	    endif
 
