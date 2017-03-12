@@ -1481,7 +1481,7 @@ function! GetPhpIndent()
 	    " ')' was opened on the same line, if not it means it closes a
 	    " multiline '(.*)' thing and that the current line need to be
 	    " de-indented one time.
-	elseif last_line =~ '\S\+\s*),'.endline
+	elseif last_line =~ '\S\+\s*),'.endline && BalanceDirection(last_line) < 0
 	    call cursor(lnum, 1)
 	    call search('),'.endline, 'W') " line never begins with ) so no need for 'c' flag
 	    " DEBUG call DebugPrintReturn(1373)
@@ -1501,10 +1501,12 @@ function! GetPhpIndent()
 	    "
 	    " IE: We test the line before the last one to check if we already
 	    " were in this "list"
+	    "
+	    " we handle "use" block statement specifically for now...
 
-    elseif AntepenultimateLine =~ '{'.endline || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
+	elseif AntepenultimateLine =~ '{'.endline && AntepenultimateLine !~? '^\s*use\>' || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
 	    let ind = ind + s:sw()
-	    " DEBUG call DebugPrintReturn(1422 . '  ' . AntepenultimateLine)
+	    " DEBUG call DebugPrintReturn(1422 . ' AntepenultimateLine:  ' . AntepenultimateLine . '   lastline: ' . last_line . ' LastLineClosed: ' . LastLineClosed)
 	endif
 
     endif
