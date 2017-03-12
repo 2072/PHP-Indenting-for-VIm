@@ -41,8 +41,10 @@
 "	silently remove them when VIM load this script (at each bufread).
 "
 "
-" Changes: 1.62         - Fix some multi-line block declaration interferences
-"			  (issue #49)
+" Changes: 1.62         - Fix some multi-line block declaration interferences (issue #49)
+"			- Fix Grouped 'use' declaration (issue #48)
+"			- Fix array index issue with function call (issue #54)
+"			- Add anonymous class declaration support (issue #55)
 "
 " Changes: 1.61         - Prevent multi-line strings declaration from breaking
 "                         indentation. (issue #47)
@@ -520,7 +522,7 @@ let s:unstated = '\%(^\s*'.s:blockstart.'.*)\|\%(//.*\)\@<!\<e'.'lse\>\)'.s:endl
 
 let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<\s*[''"]\=\a\w*[''"]\=$\|^\s*}\|^\s*'.s:PHP_validVariable.':\)'.s:endline.'\)'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
-
+let s:structureHead = '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline . '\|\<new\s\+class\>'
 
 
 let s:escapeDebugStops = 0
@@ -688,7 +690,7 @@ function! FindOpenBracket(lnum, blockStarter) " {{{
 	while line > 1
 	    let linec = getline(line)
 
-	    if linec =~ s:terminated || linec =~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+	    if linec =~ s:terminated || linec =~ s:structureHead
 		break
 	    endif
 
@@ -1263,7 +1265,7 @@ function! GetPhpIndent()
 	" let's find the indent of the block starter (if, while, for, etc...)
 	while last_line_num > 1
 
-	    if previous_line =~ terminated || previous_line =~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . endline
+	    if previous_line =~ terminated || previous_line =~ s:structureHead
 
 		let ind = indent(last_line_num)
 
@@ -1457,7 +1459,7 @@ function! GetPhpIndent()
 	    " before it but is not a block starter / function declaration.
 	    " It should mean that it's a multi-line block declaration and that
 	    " the previous line is already indented...
-	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\s*{'.endline && last_line !~ s:structureHead
 		let dontIndent = 1
 	    endif
 
