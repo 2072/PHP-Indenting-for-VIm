@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2016 October 2nd
-" Version:	1.61
+" Last Change:	2017 March 12th
+" Version:	1.62
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.62         - Fix some multi-line block declaration interferences
+"			  (issue #49)
 "
 " Changes: 1.61         - Prevent multi-line strings declaration from breaking
 "                         indentation. (issue #47)
@@ -1132,17 +1135,20 @@ function! GetPhpIndent()
     " PHP start tags are always at col 1, useless to indent unless the end tag
     " is on the same line
     if cline =~# '^\s*<?' && cline !~ '?>' && b:PHP_outdentphpescape
+	" DEBUG call DebugPrintReturn(1135)
 	return 0
     endif
 
     " PHP end tags are always at col 1, useless to indent unless if it's
     " followed by a start tag on the same line
     if	cline =~ '^\s*?>' && cline !~# '<?' && b:PHP_outdentphpescape
+	" DEBUG call DebugPrintReturn(1142)
 	return 0
     endif
 
     " put HereDoc end tags at start of lines
     if cline =~? '^\s*\a\w*;$\|^\a\w*$\|^\s*[''"`][;,]' && cline !~? s:notPhpHereDoc
+	" DEBUG call DebugPrintReturn(1148)
 	return 0
     endif " }}}
 
@@ -1223,7 +1229,7 @@ function! GetPhpIndent()
     let terminated = s:terminated
 
     let unstated  = s:unstated
-    
+
 
     " if the current line is an 'else' starting line
     if ind != b:PHP_default_indenting && cline =~# '^\s*else\%(if\)\=\>'
@@ -1437,7 +1443,7 @@ function! GetPhpIndent()
 	    " before it but is not a block starter / function declaration.
 	    " It should mean that it's a multi-line block declaration and that
 	    " the previous line is already indented...
-	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*)\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
+	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\s*{'.endline && last_line !~ '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline
 		let dontIndent = 1
 	    endif
 
