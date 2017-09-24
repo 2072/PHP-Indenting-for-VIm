@@ -42,6 +42,7 @@
 "
 "
 " Changes: 1.63         - Fix chained multi-line '->' indentation (issue #54 and #59)
+"                       - Fix array indentation when PHP_vintage_case_default_indent is set (issue #58)
 "
 " Changes: 1.62         - Fix some multi-line block declaration interferences (issue #49)
 "			- Fix Grouped 'use' declaration (issue #48)
@@ -498,7 +499,7 @@ endif
 " Only define the functions once per Vim session.
 if exists("*GetPhpIndent")
     call ResetPhpOptions()
-"    finish " XXX -- comment this line for easy dev
+    finish " XXX -- comment this line for easy dev
 endif
 "setlocal debug=msg " XXX -- do not comment this line when modifying this file
 
@@ -1538,7 +1539,8 @@ function! GetPhpIndent()
 		let b:PHP_CurrentIndentLevel = ind
 
 		" DEBUG call DebugPrintReturn(1299)
-		return ind + addSpecial
+		" return ind + addSpecial " commented out to fix #58. Couldn't
+		" find a proper reason to return here
 	    endif
 
 	    " If the last line ends with a '),' then check if the
