@@ -42,6 +42,9 @@
 "
 "
 " Changes: 1.64         - Always ignore case when using syntax highlighting names (issue #52)
+"			- Fix bug introduced in 1.63 (the content of anonymous function
+"			  declarations preceded by a '->' was no longer
+"			  indented correctly) (issue #59)
 "
 "
 " Changes: 1.63         - Fix chained multi-line '->' indentation (issue #54 and #59)
@@ -1240,12 +1243,12 @@ function! GetPhpIndent()
 
     " Find an executable php code line above the current line.
     let lnum = GetLastRealCodeLNum(v:lnum - 1)
-    " DEBUG call DebugPrintReturn(1121 . " last php line: " . lnum)
 
     " last line
     let last_line = getline(lnum)
     " by default
     let ind = indent(lnum)
+    " DEBUG call DebugPrintReturn(1246 . " last php line: " . lnum . " - indent: ".ind." - '".last_line."'")
 
     if ind==0 && b:PHP_default_indenting
 	let ind = b:PHP_default_indenting
@@ -1510,7 +1513,7 @@ function! GetPhpIndent()
     " Indent blocks enclosed by {} or () (default indenting)
     if !LastLineClosed
 
-	" this varianle is going to be set when a "()," block was skipped
+	" this variable is going to be set when a "()," block was skipped
 	let openedparent = -1
 
 	" the last line isn't a .*; or a }$ line
@@ -1533,8 +1536,8 @@ function! GetPhpIndent()
 	    " indent if we don't want braces at code level or if the last line
 	    " is not a lonely '{' (default indent for the if block)
 	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
-		" DEBUG call DebugPrintReturn(1454. '  +1 indent ')
 		let ind = ind + s:sw()
+		" DEBUG call DebugPrintReturn(1454. '  +1 indent: '.ind)
 	    endif
 
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
@@ -1561,7 +1564,7 @@ function! GetPhpIndent()
 
 	    " if the line before starts a block then we need to indent the
 	    " current line.
-	elseif last_line =~ '^\s*'.s:blockstart
+	elseif last_line =~ s:structureHead
 	    let ind = ind + s:sw()
 
 	    " In all other cases if !LastLineClosed indent 1 level higher
@@ -1587,16 +1590,17 @@ function! GetPhpIndent()
 
     " If the current line closes a multiline function call or array def
     if cline =~ '^\s*[)\]];\='
+	" DEBUG call DebugPrintReturn(1590. '  -1 indent ')
 	let ind = ind - s:sw()
     endif
 
     " if the previous line begins with a -> then we need to remove one &sw
-    if last_line =~ '^\s*->'
+    if last_line =~ '^\s*->' && last_line !~? s:structureHead
 	let ind = ind - s:sw()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
-    " DEBUG call DebugPrintReturn(1433)
+    " DEBUG call DebugPrintReturn(1538 . 'final indent: ' . ind . ' - addSpecial: ' . addSpecial)
     return ind + addSpecial
 endfunction
 
