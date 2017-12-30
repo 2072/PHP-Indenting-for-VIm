@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2017 September 25th
-" Version:	1.63
+" Last Change:	2017 December 30th
+" Version:	1.64
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.64         - Always ignore case when using syntax highlighting names (issue #52)
 "
 "
 " Changes: 1.63         - Fix chained multi-line '->' indentation (issue #54 and #59)
@@ -677,7 +680,7 @@ function! Skippmatch()	" {{{
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
 	" DEBUG call DebugPrintReturn('Skippmatch():'.synname ." ". b:UserIsTypingComment .' online: ' . line("."))
-    if synname == "Delimiter" || synname == "phpRegionDelimiter" || synname =~# "^phpParent" || synname == "phpArrayParens" || synname =~# '^php\%(Block\|Brace\)' || synname == "javaScriptBraces" || synname =~# '^php\%(Doc\)\?Comment' && b:UserIsTypingComment
+    if synname ==? "Delimiter" || synname ==? "phpRegionDelimiter" || synname =~? "^phpParent" || synname ==? "phpArrayParens" || synname =~? '^php\%(Block\|Brace\)' || synname ==? "javaScriptBraces" || synname =~? '^php\%(Doc\)\?Comment' && b:UserIsTypingComment
 	return 0
     else
 	return 1
@@ -866,7 +869,7 @@ endfunction "}}}
 
 " 2013-08-02: I wish I had lists and dictionaries when I designed this
 " script 9 years ago (wait... what? 9 years !?!?!)...
-let s:SynPHPMatchGroups = {'phpParent':1, 'Delimiter':1, 'Define':1, 'Storageclass':1, 'StorageClass':1, 'Structure':1, 'Exception':1}
+let s:SynPHPMatchGroups = {'phpparent':1, 'delimiter':1, 'define':1, 'storageclass':1, 'structure':1, 'exception':1}
 function! IslinePHP (lnum, tofind) " {{{
     " This function asks to the syntax if the pattern 'tofind' on the line
     " number 'lnum' is PHP code (very slow...).
@@ -890,7 +893,7 @@ function! IslinePHP (lnum, tofind) " {{{
     let synname = synIDattr(synID(a:lnum, coltotest, 0), "name")
 
     " don't see string content as php
-    if synname == 'phpStringSingle' || synname == 'phpStringDouble' || synname == 'phpBacktick'
+    if synname ==? 'phpStringSingle' || synname ==? 'phpStringDouble' || synname ==? 'phpBacktick'
 	if cline !~ '^\s*[''"`]'
 	    return "SpecStringEntrails"
 	else
@@ -899,7 +902,7 @@ function! IslinePHP (lnum, tofind) " {{{
     end
 
     " DEBUG call DebugPrintReturn('IslinePHP(): ' . synname)
-    if get(s:SynPHPMatchGroups, synname) || synname =~ '^php' ||  synname =~? '^javaScript'
+    if get(s:SynPHPMatchGroups, tolower(synname)) || synname =~ '^php' ||  synname =~? '^javaScript'
 	return synname
     else
 	return ""
@@ -942,7 +945,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.63"
+    return "1.64"
 endfun
 
 function! GetPhpIndent()
@@ -1022,17 +1025,17 @@ function! GetPhpIndent()
 
 	" DEBUG call DebugPrintReturn(869 . ' synname? ' . synname)
 	if synname!=""
-	    if synname == "SpecStringEntrails"
+	    if synname ==? "SpecStringEntrails"
 		" the user has done something ugly *stay calm*
 		let b:InPHPcode = -1 " thumb down
 		" All hope is lost at this point, nothing will be indented
 		" further on.
 		let b:InPHPcode_tofind = ""
-	    elseif synname != "phpHereDoc" && synname != "phpHereDocDelimiter"
+	    elseif synname !=? "phpHereDoc" && synname !=? "phpHereDocDelimiter"
 		let b:InPHPcode = 1
 		let b:InPHPcode_tofind = ""
 
-		if synname =~# '^php\%(Doc\)\?Comment'
+		if synname =~? '^php\%(Doc\)\?Comment'
 		    let b:UserIsTypingComment = 1
 		    " UserIsTypingComment needs to be checked every time
 		    " because we can't reliably detect when it ends.
@@ -1125,7 +1128,7 @@ function! GetPhpIndent()
     if 1 == b:InPHPcode
 
 	" Was last line containing a PHP end tag ?
-	if !b:InPHPcode_and_script && last_line =~ '\%(<?.*\)\@<!?>\%(.*<?\)\@!' && IslinePHP(lnum, '?>')=~"Delimiter"
+	if !b:InPHPcode_and_script && last_line =~ '\%(<?.*\)\@<!?>\%(.*<?\)\@!' && IslinePHP(lnum, '?>')=~?"Delimiter"
 	    if cline !~? s:PHP_startindenttag
 		let b:InPHPcode = 0
 		let b:InPHPcode_tofind = s:PHP_startindenttag
