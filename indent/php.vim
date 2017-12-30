@@ -45,6 +45,8 @@
 "			- Fix bug introduced in 1.63 (the content of anonymous function
 "			  declarations preceded by a '->' was no longer
 "			  indented correctly) (issue #59)
+"			- Add a new PHP_noArrowMatching option to disable '->'
+"			  indentation matching on multi-line chained calls (issue #59).
 "
 "
 " Changes: 1.63         - Fix chained multi-line '->' indentation (issue #54 and #59)
@@ -458,6 +460,12 @@ else
     let b:PHP_outdentphpescape = 1
 endif
 
+if exists("PHP_noArrowMatching")
+    let b:PHP_noArrowMatching = PHP_noArrowMatching
+else
+    let b:PHP_noArrowMatching = 0
+endif
+
 
 if exists("PHP_vintage_case_default_indent") && PHP_vintage_case_default_indent
     let b:PHP_vintage_case_default_indent = 1
@@ -734,14 +742,17 @@ function! StripEndlineComments (line)
 endfun
 
 function! FindArrowIndent (lnum)  " {{{
-    " -1 the previous line contains a another ->:
-    "    we just need to return the position of this arrow
-    " -2 the previous line doesn't contain an ->
-    "     -2.1 its a )$
-    "        - recheck the line where the matching ( is located
-    "            loop
-    "     -2.2 it's a non terminated line or anything else
-    "         just add an &sw
+    " - 1 The previous line contains another '->':
+    "    we just need to return the position of this arrow if the
+    "    PHP_noArrowMatching is not set, just add an &sw otherwise.
+    "
+    " - 2 The previous line doesn't contain an '->'
+    "     - 2.1 It's a ')$'
+    "        - recheck the line where the matching '(' is located
+    "            LOOP
+    "
+    "     - 2.2 It's a non-terminated line or anything else (first '->' or not a chained call)
+    "         just return the indent of the previous line + &sw (normal indent)
 
     let parrentArrowPos = 0
     let lnum = a:lnum
@@ -757,8 +768,13 @@ function! FindArrowIndent (lnum)  " {{{
 	    call cursor(lnum, 1)
 	    let cleanedLnum = StripEndlineComments(last_line)
 	    if cleanedLnum =~ '->'
-		let parrentArrowPos = searchpos('->', 'W', lnum)[1] - 1
-		" DEBUG call DebugPrintReturn(767 . "FindArrowIndent returning arrow searchposition")
+		if ! b:PHP_noArrowMatching
+		    let parrentArrowPos = searchpos('->', 'W', lnum)[1] - 1
+		    " DEBUG call DebugPrintReturn(767 . "FindArrowIndent returning arrow searchposition")
+		else
+		    let parrentArrowPos = indent(lnum) + s:sw()
+		    " DEBUG call DebugPrintReturn(767 . "FindArrowIndent returning default indent as PHP_noArrowMatching is set")
+		endif
 		break
 	    elseif cleanedLnum =~ ')'.s:endline && BalanceDirection(last_line) < 0
 		call searchpos(')'.s:endline, 'cW', lnum)
