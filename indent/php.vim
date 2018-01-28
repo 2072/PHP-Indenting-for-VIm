@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2017 December 30th
-" Version:	1.64
+" Last Change:	2018 January 28th
+" Version:	1.65
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.65         - Functions declared as returning references were not
+"                         indented properly (issue #62).
 "
 " Changes: 1.64         - Always ignore case when using syntax highlighting names (issue #52)
 "			- Fix bug introduced in 1.63 (the content of anonymous function
@@ -523,7 +526,7 @@ endif
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
-let s:functionDecl = '\<function\>\%(\s\+'.s:PHP_validVariable.'\)\=\s*(.*'
+let s:functionDecl = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*(.*'
 let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 " Unstated line?
 " - an "else" at the end of line
@@ -964,7 +967,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.64"
+    return "1.65"
 endfun
 
 function! GetPhpIndent()
