@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2018 January 28th
-" Version:	1.65
+" Last Change:	2018 February 14th
+" Version:	1.66
 "
 "
 "	Type :help php-indent for available options
@@ -40,6 +40,9 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+"
+" Changes: 1.66         - Add support for return type declaration on multi-line
+"		          function declarations (issue #64)
 "
 " Changes: 1.65         - Functions declared as returning references were not
 "                         indented properly (issue #62).
@@ -1547,7 +1550,7 @@ function! GetPhpIndent()
 	    " before it but is not a block starter / function declaration.
 	    " It should mean that it's a multi-line block declaration and that
 	    " the previous line is already indented...
-	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\s*{'.endline && last_line !~ s:structureHead
+	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\(\s*:\s*'.s:PHP_validVariable.'\)\=\s*{'.endline && last_line !~ s:structureHead
 		let dontIndent = 1
 	    endif
 
