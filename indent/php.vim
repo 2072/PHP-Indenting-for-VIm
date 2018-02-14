@@ -43,6 +43,8 @@
 "
 " Changes: 1.66         - Add support for return type declaration on multi-line
 "		          function declarations (issue #64)
+"		        - Fix to multi-line function declaration argument
+"		          indentation (issue #63)
 "
 " Changes: 1.65         - Functions declared as returning references were not
 "                         indented properly (issue #62).
@@ -1612,12 +1614,13 @@ function! GetPhpIndent()
 
     " If the current line closes a multiline function call or array def
     if cline =~ '^\s*[)\]];\='
-	" DEBUG call DebugPrintReturn(1590. '  -1 indent ')
+	" DEBUG call DebugPrintReturn(1615. '  -1 indent ')
 	let ind = ind - s:sw()
     endif
 
     " if the previous line begins with a -> then we need to remove one &sw
-    if last_line =~ '^\s*->' && last_line !~? s:structureHead
+    if last_line =~ '^\s*->' && last_line !~? s:structureHead && BalanceDirection(last_line) <= 0
+	" DEBUG call DebugPrintReturn(1621. '  -1 indent ')
 	let ind = ind - s:sw()
     endif
 
