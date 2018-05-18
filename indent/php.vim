@@ -3,7 +3,7 @@
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
 " URL:		http://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2018 February 14th
+" Last Change:	2018 May 18th
 " Version:	1.66
 "
 "
@@ -972,7 +972,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.65"
+    return "1.66"
 endfun
 
 function! GetPhpIndent()
