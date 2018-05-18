@@ -422,29 +422,17 @@ let b:did_indent = 1
 
 let g:php_sync_method = 0
 
-" Get the effective value of 'shiftwidth'. Vim since 7.3-703 allows a value of
-" 0, which uses the value of 'tabstop', in which case we need to use the
-" shiftwidth() function.
-if exists('*shiftwidth')
-  function! s:sw()
-    return shiftwidth()
-  endfunction
-else
-  function! s:sw()
-    return &shiftwidth
-  endfunction
-endif
 
 " Apply options
 
 if exists("PHP_default_indenting")
-    let b:PHP_default_indenting = PHP_default_indenting * s:sw()
+    let b:PHP_default_indenting = PHP_default_indenting * shiftwidth()
 else
     let b:PHP_default_indenting = 0
 endif
 
 if exists("PHP_outdentSLComments")
-    let b:PHP_outdentSLComments = PHP_outdentSLComments * s:sw()
+    let b:PHP_outdentSLComments = PHP_outdentSLComments * shiftwidth()
 else
     let b:PHP_outdentSLComments = 0
 endif
@@ -780,7 +768,7 @@ function! FindArrowIndent (lnum)  " {{{
 		    let parrentArrowPos = searchpos('->', 'W', lnum)[1] - 1
 		    " DEBUG call DebugPrintReturn(767 . "FindArrowIndent returning arrow searchposition")
 		else
-		    let parrentArrowPos = indent(lnum) + s:sw()
+		    let parrentArrowPos = indent(lnum) + shiftwidth()
 		    " DEBUG call DebugPrintReturn(767 . "FindArrowIndent returning default indent as PHP_noArrowMatching is set")
 		endif
 		break
@@ -795,7 +783,7 @@ function! FindArrowIndent (lnum)  " {{{
 		" DEBUG call DebugPrintReturn(767 . "FindArrowIndent skipped a () block: new lnum=".lnum)
 
 	    else
-		let parrentArrowPos = indent(lnum) + s:sw()
+		let parrentArrowPos = indent(lnum) + shiftwidth()
 		" DEBUG call DebugPrintReturn(767 . "FindArrowIndent default +&sw")
 		break
 	    endif
@@ -864,7 +852,7 @@ function! FindTheSwitchIndent (lnum) " {{{
     let test = GetLastRealCodeLNum(a:lnum - 1)
 
     if test <= 1
-	return indent(1) - s:sw() * b:PHP_vintage_case_default_indent
+	return indent(1) - shiftwidth() * b:PHP_vintage_case_default_indent
     end
 
     " A closing bracket? let skip the whole block to save some recursive calls
@@ -886,7 +874,7 @@ function! FindTheSwitchIndent (lnum) " {{{
 	return indent(test)
     elseif getline(test) =~# s:defaultORcase
 	" DEBUG call DebugPrintReturn('found a default/case on ' . test)
-	return indent(test) - s:sw() * b:PHP_vintage_case_default_indent
+	return indent(test) - shiftwidth() * b:PHP_vintage_case_default_indent
     else
 	" DEBUG call DebugPrintReturn('recursing from ' . test)
 	return FindTheSwitchIndent(test)
@@ -990,7 +978,7 @@ function! GetPhpIndent()
     endif
 
     if b:PHP_default_indenting
-	let b:PHP_default_indenting = g:PHP_default_indenting * s:sw()
+	let b:PHP_default_indenting = g:PHP_default_indenting * shiftwidth()
     endif
 
     " current line
@@ -1351,7 +1339,7 @@ function! GetPhpIndent()
     elseif cline =~# s:defaultORcase
 	" DEBUG call DebugPrintReturn(1064)
 	" case and default need a special treatment
-	return FindTheSwitchIndent(v:lnum) + s:sw() * b:PHP_vintage_case_default_indent
+	return FindTheSwitchIndent(v:lnum) + shiftwidth() * b:PHP_vintage_case_default_indent
     elseif cline =~ '^\s*)\=\s*{'
 	let previous_line = last_line
 	let last_line_num = lnum
@@ -1366,7 +1354,7 @@ function! GetPhpIndent()
 
 		" If the PHP_BracesAtCodeLevel is set then indent the '{'
 		if  b:PHP_BracesAtCodeLevel
-		    let ind = ind + s:sw()
+		    let ind = ind + shiftwidth()
 		endif
 
 		" DEBUG call DebugPrintReturn(1083)
@@ -1379,7 +1367,7 @@ function! GetPhpIndent()
     elseif cline =~ '^\s*->'
 	return FindArrowIndent(lnum)
     elseif last_line =~# unstated && cline !~ '^\s*);\='.endline
-	let ind = ind + s:sw() " we indent one level further when the preceding line is not stated
+	let ind = ind + shiftwidth() " we indent one level further when the preceding line is not stated
 	" DEBUG call DebugPrintReturn(1093)
 	return ind + addSpecial
 
@@ -1560,7 +1548,7 @@ function! GetPhpIndent()
 	    " indent if we don't want braces at code level or if the last line
 	    " is not a lonely '{' (default indent for the if block)
 	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
-		let ind = ind + s:sw()
+		let ind = ind + shiftwidth()
 		" DEBUG call DebugPrintReturn(1454. '  +1 indent: '.ind)
 	    endif
 
@@ -1589,7 +1577,7 @@ function! GetPhpIndent()
 	    " if the line before starts a block then we need to indent the
 	    " current line.
 	elseif last_line =~ s:structureHead
-	    let ind = ind + s:sw()
+	    let ind = ind + shiftwidth()
 
 	    " In all other cases if !LastLineClosed indent 1 level higher
 	    " _only_ if the ante-penultimate line _is_ 'closed' or if it's a
@@ -1601,7 +1589,7 @@ function! GetPhpIndent()
 	    " we handle "use" block statement specifically for now...
 
 	elseif AntepenultimateLine =~ '{'.endline && AntepenultimateLine !~? '^\s*use\>' || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
-	    let ind = ind + s:sw()
+	    let ind = ind + shiftwidth()
 	    " DEBUG call DebugPrintReturn(1422 . ' AntepenultimateLine:  ' . AntepenultimateLine . '   lastline: ' . last_line . ' LastLineClosed: ' . LastLineClosed)
 	endif
 
@@ -1615,13 +1603,13 @@ function! GetPhpIndent()
     " If the current line closes a multiline function call or array def
     if cline =~ '^\s*[)\]];\='
 	" DEBUG call DebugPrintReturn(1615. '  -1 indent ')
-	let ind = ind - s:sw()
+	let ind = ind - shiftwidth()
     endif
 
     " if the previous line begins with a -> then we need to remove one &sw
     if last_line =~ '^\s*->' && last_line !~? s:structureHead && BalanceDirection(last_line) <= 0
 	" DEBUG call DebugPrintReturn(1621. '  -1 indent ')
-	let ind = ind - s:sw()
+	let ind = ind - shiftwidth()
     endif
 
     let b:PHP_CurrentIndentLevel = ind
