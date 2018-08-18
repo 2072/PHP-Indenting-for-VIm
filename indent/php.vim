@@ -1,7 +1,7 @@
 " Vim indent file
 " Language:	PHP
 " Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
-" URL:		http://www.2072productions.com/vim/indent/php.vim
+" URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
 " Last Change:	2018 June 28th
 " Version:	1.67
@@ -19,7 +19,7 @@
 
 " NOTE: This script must be used with PHP syntax ON and with the php syntax
 "	script by Lutz Eymers (http://www.isp.de/data/php.vim ) or with the
-"	script by Peter Hodge (http://www.vim.org/scripts/script.php?script_id=1571 )
+"	script by Peter Hodge (https://www.vim.org/scripts/script.php?script_id=1571 )
 "	the later is bunbdled by default with Vim 7.
 "
 "
@@ -225,7 +225,7 @@
 "
 "
 " Changes: 1.24		- Added compatibility with the latest version of
-"			  php.vim syntax file by Peter Hodge (http://www.vim.org/scripts/script.php?script_id=1571)
+"			  php.vim syntax file by Peter Hodge (https://www.vim.org/scripts/script.php?script_id=1571)
 "			  This fixes wrong indentation and ultra-slow indenting
 "			  on large php files...
 "			- Fixed spelling in comments.
@@ -964,7 +964,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.66"
+    return "1.67"
 endfun
 
 function! GetPhpIndent()
