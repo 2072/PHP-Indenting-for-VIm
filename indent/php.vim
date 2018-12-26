@@ -1,10 +1,10 @@
 " Vim indent file
 " Language:	PHP
-" Author:	John Wellesz <John.wellesz (AT) teaser (DOT) fr>
+" Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2018 June 28th
-" Version:	1.67
+" Last Change:	2018 December 27th
+" Version:	1.68
 "
 "
 "	Type :help php-indent for available options
