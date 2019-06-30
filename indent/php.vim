@@ -725,17 +725,24 @@ function! FindOpenBracket(lnum, blockStarter) " {{{
 endfun " }}}
 
 let s:blockChars = {'{':1, '[': 1, '(': 1, ')':-1, ']':-1, '}':-1}
+let s:blockCharsLUT = {'{':'{', '}':'{',   '[':'[', ']':'[',   '(':'(', ')':'('}
 function! BalanceDirection (str)
 
-    let balance = 0
+    let balance = {'{':0, '[': 0, '(': 0, 'none':0}
+    let director = 'none'
 
     for c in split(a:str, '\zs')
 	if has_key(s:blockChars, c)
-	    let balance += s:blockChars[c]
+	    let balance[s:blockCharsLUT[c]] += s:blockChars[c]
+
+	    " record the last out of balance character
+	    if balance[s:blockCharsLUT[c]]
+		let director = s:blockCharsLUT[c]
+	    endif
 	endif
     endfor
 
-    return balance
+    return balance[director]
 endfun
 
 function! StripEndlineComments (line)
@@ -1576,9 +1583,10 @@ function! GetPhpIndent()
 	    " the previous line is already indented...
 	    if last_line =~ '\S\+\s*{'.endline && last_line !~ '^\s*[)\]]\+\(\s*:\s*'.s:PHP_validVariable.'\)\=\s*{'.endline && last_line !~ s:structureHead
 		let dontIndent = 1
+		" DEBUG call DebugPrintReturn(1579 . ' dontIndentSet  ' . (last_line =~ '\S\+\s*{'.endline) . '-' . (last_line !~ '^\s*[)\]]\+\(\s*:\s*'.s:PHP_validVariable.'\)\=\s*{'.endline )  . '-' . (last_line !~ s:structureHead))
 	    endif
 
-	    " DEBUG call DebugPrintReturn(1450. '   ' . dontIndent . ' lastline: ' . last_line . ' balance? ' . BalanceDirection(last_line))
+	    " DEBUG call DebugPrintReturn(1450. '   ' . dontIndent . ' lastline: ' . last_line . ' balance? ' . BalanceDirection(last_line) . ' structure head? ' . (last_line !~ s:structureHead) )
 	    " indent if we don't want braces at code level or if the last line
 	    " is not a lonely '{' (default indent for the if block)
 	    if !dontIndent && (!b:PHP_BracesAtCodeLevel || last_line !~# '^\s*{')
