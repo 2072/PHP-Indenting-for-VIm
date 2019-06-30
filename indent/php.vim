@@ -3,7 +3,7 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2019 June 30th
+" Last Change:	2019 Jully 1st
 " Version:	1.69
 "
 "
@@ -40,9 +40,10 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
-" Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on
-"			  multiline-string declarations ending with a comma.
+" Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on multiline-string declarations ending with a comma.
 "			- Fix #69: Indenting was incorrect for closures with single-line `use` statements.
+"			- Always indent `^\s*[)\]]` according to their opening counterpart. This is slower but computers have
+"			  improved in the last 15 years...
 "
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
 "			  identifiers were treated as here doc ending indentifiers and set at column 0.
@@ -526,11 +527,13 @@ endif
 " enable debug calls: :%s /" DEBUG \zec//g
 " disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
 
+let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\|end\%(if\|while\|for\|foreach\|switch\)\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
 let s:functionDecl = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*(.*'
-let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
+let s:arrayDecl = '\<array\>\s*(.*'
+let s:multilineFunctionCall = s:PHP_validVariable.'\s*('.s:endline
 " Unstated line?
 " - an "else" at the end of line
 " - a  s:blockstart (if while etc...) followed by anything but a ";" at
@@ -697,7 +700,7 @@ function! Skippmatch()	" {{{
     " times faster but you may have troubles with '{' inside comments or strings
     " that will break the indent algorithm...
     let synname = synIDattr(synID(line("."), col("."), 0), "name")
-	" DEBUG call DebugPrintReturn('Skippmatch():'.synname ." ". b:UserIsTypingComment .' online: ' . line("."))
+	" DEBUG call DebugPrintReturn('Skippmatch():'.synname ." ". b:UserIsTypingComment .' online: ' . line(".") . 'at col ' . col(".") . ' char:'.getline(line("."))[col(".")-1])
     if synname ==? "Delimiter" || synname ==? "phpRegionDelimiter" || synname =~? "^phpParent" || synname ==? "phpArrayParens" || synname =~? '^php\%(Block\|Brace\)' || synname ==? "javaScriptBraces" || synname =~? '^php\%(Doc\)\?Comment' && b:UserIsTypingComment
 	return 0
     else
@@ -1595,6 +1598,11 @@ function! GetPhpIndent()
 		" DEBUG call DebugPrintReturn(1454. '  +1 indent: '.ind)
 	    endif
 
+	    " quick try on feature request #71
+"	    if last_line =~ s:multilineFunctionCall && last_line !~ s:functionDecl && last_line !~ s:arrayDecl
+"		let ind = ind + shiftwidth()
+"	    endif
+
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
 		" case and default are not indented inside blocks
 		let b:PHP_CurrentIndentLevel = ind
@@ -1606,7 +1614,7 @@ function! GetPhpIndent()
 
 	    " If the last line ends with a '),' then check if the
 	    " ')' was opened on the same line, if not it means it closes a
-	    " multiline '(.*)' thing and that the current line need to be
+	    " multiline '(.*)' thing and that the current line needs to be
 	    " de-indented one time.
 	elseif last_line =~ '),'.endline && BalanceDirection(last_line) < 0
 	    call cursor(lnum, 1)
@@ -1645,12 +1653,17 @@ function! GetPhpIndent()
 
     " If the current line closes a multiline function call or array def
     if cline =~ '^\s*[)\]];\='
-	" DEBUG call DebugPrintReturn(1615. '  -1 indent ')
-	let ind = ind - shiftwidth()
-    endif
+	call cursor(v:lnum, 1)
+	call searchpos('[)\]]', 'cW')
+	let matchedBlockChar = cline[col('.')-1]
+	" DEBUG call DebugPrintReturn(1662 .'  ' . matchedBlockChar.s:blockCharsLUT[matchedBlockChar])
+	let openedparent = searchpair('\M'.s:blockCharsLUT[matchedBlockChar], '', '\M'.matchedBlockChar, 'bW', 'Skippmatch()')
+	if openedparent != v:lnum
+	    let ind = indent(openedparent)
+	endif
 
-    " if the previous line begins with a -> then we need to remove one &sw
-    if last_line =~ '^\s*->' && last_line !~? s:structureHead && BalanceDirection(last_line) <= 0
+	" if the previous line begins with a -> then we need to remove one &sw
+    elseif last_line =~ '^\s*->' && last_line !~? s:structureHead && BalanceDirection(last_line) <= 0
 	" DEBUG call DebugPrintReturn(1621. '  -1 indent ')
 	let ind = ind - shiftwidth()
     endif
