@@ -44,6 +44,8 @@
 "			- Fix #69: Indenting was incorrect for closures with single-line `use` statements.
 "			- Always indent `^\s*[)\]]` according to their opening counterpart. This is slower but computers have
 "			  improved in the last 15 years...
+"			- Implement feature request #71: added option PHP_IndentFunctionParameters to be set to the number of
+"			  additional indents you want for your function parameters.
 "
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
 "			  identifiers were treated as here doc ending indentifiers and set at column 0.
@@ -480,7 +482,11 @@ else
     let b:PHP_vintage_case_default_indent = 0
 endif
 
-
+if exists("PHP_IndentFunctionParameters ")
+    let b:PHP_IndentFunctionParameters = PHP_IndentFunctionParameters
+else
+    let b:PHP_IndentFunctionParameters = 0
+endif
 
 let b:PHP_lastindented = 0
 let b:PHP_indentbeforelast = 0
@@ -1598,10 +1604,9 @@ function! GetPhpIndent()
 		" DEBUG call DebugPrintReturn(1454. '  +1 indent: '.ind)
 	    endif
 
-	    " quick try on feature request #71
-"	    if last_line =~ s:multilineFunctionCall && last_line !~ s:functionDecl && last_line !~ s:arrayDecl
-"		let ind = ind + shiftwidth()
-"	    endif
+	    if b:PHP_IndentFunctionParameters && last_line =~ s:multilineFunctionCall && last_line !~ s:structureHead && last_line !~ s:arrayDecl
+		let ind = ind + b:PHP_IndentFunctionParameters * shiftwidth()
+	    endif
 
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
 		" case and default are not indented inside blocks
