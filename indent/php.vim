@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2018 December 27th
-" Version:	1.68
+" Last Change:	2019 June 30th
+" Version:	1.69
 "
 "
 "	Type :help php-indent for available options
@@ -40,8 +40,11 @@
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
 "
+" Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on
+"			  multiline-string declarations ending with a comma.
+"
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
-"			  identifiers were treated as her doc ending indentifiers and set at column 0.
+"			  identifiers were treated as here doc ending indentifiers and set at column 0.
 "			- WIP: More work on #67: arrow matching involving () not behaving as expected (better but not perfect).
 "
 " Changes: 1.67         - Fix #67: chained calls indentation was aligning on the
@@ -562,6 +565,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 
     let lnum = a:startline
 
+    " DEBUG call DebugPrintReturn('565: started GetLastRealCodeLNum ' . lnum . ' --- lastline: ' . getline(lnum) )
     " Used to indent <script.*> html tag correctly
     if b:GetLastRealCodeLNum_ADD && b:GetLastRealCodeLNum_ADD == lnum + 1
 	let lnum = b:GetLastRealCodeLNum_ADD
@@ -623,17 +627,17 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    while getline(lnum) !~? tofind && lnum > 1
 		let lnum = lnum - 1
 	    endwhile
-	elseif lastline =~ '^[^''"`]*[''"`][;,]'.s:endline
-	    " match multiline strings
+	elseif lastline =~ '^[^''"`]*[''"`][;,]'.s:endline && IslinePHP(lnum, "") == "SpecStringEntrails"
+	    " match end of multiline strings horrors
 
 	    let tofind=substitute( lastline, '^.*\([''"`]\)[;,].*$', '^[^\1]\\+[\1]$\\|^[^\1]\\+[=([]\\s*[\1]', '')
-	    " DEBUG call DebugPrintReturn( 'mls end, to find:' . tofind . "   lnum" . lnum)
+	    " DEBUG call DebugPrintReturn( 'mls end, to find:' . tofind . "   lnum" . lnum . '.. is this php? ' . IslinePHP(lnum, ""))
 	    let trylnum = lnum
 	    while getline(trylnum) !~? tofind && trylnum > 1
 		let trylnum = trylnum - 1
 	    endwhile
 
-	    " DEBUG call DebugPrintReturn('trylnum ' . trylnum)
+	    " DEBUG call DebugPrintReturn('trylnum ' . trylnum . ' --- lastline: ' . lastline )
 	    if trylnum == 1
 		" we have failed... let things be.
 		break
@@ -1068,7 +1072,7 @@ function! GetPhpIndent()
 	    let synname = IslinePHP (prevnonblank(v:lnum), "")
 	endif
 
-	" DEBUG call DebugPrintReturn(869 . ' synname? ' . synname)
+	" DEBUG call DebugPrintReturn(869 . ' synname? ' . synname . ' line: ' . prevnonblank(v:lnum) )
 	if synname!=""
 	    if synname ==? "SpecStringEntrails"
 		" the user has done something ugly *stay calm*
