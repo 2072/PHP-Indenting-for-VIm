@@ -42,6 +42,7 @@
 "
 " Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on
 "			  multiline-string declarations ending with a comma.
+"			- Fix #69: Indenting was incorrect for closures with single-line `use` statements.
 "
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
 "			  identifiers were treated as here doc ending indentifiers and set at column 0.
@@ -527,7 +528,7 @@ endif
 
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\|end\%(if\|while\|for\|foreach\|switch\)\)'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
 let s:functionDecl = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*(.*'
 let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 " Unstated line?
@@ -1001,7 +1002,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.67"
+    return "1.69"
 endfun
 
 function! GetPhpIndent()
