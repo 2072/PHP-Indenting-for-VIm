@@ -484,10 +484,10 @@ else
     let b:PHP_vintage_case_default_indent = 0
 endif
 
-if exists("PHP_IndentFunctionParameters ")
-    let b:PHP_IndentFunctionParameters = PHP_IndentFunctionParameters
+if exists("PHP_IndentFunctionCallParameters")
+    let b:PHP_IndentFunctionCallParameters = PHP_IndentFunctionCallParameters
 else
-    let b:PHP_IndentFunctionParameters = 0
+    let b:PHP_IndentFunctionCallParameters = 0
 endif
 
 let b:PHP_lastindented = 0
@@ -1620,8 +1620,8 @@ function! GetPhpIndent()
 		" DEBUG call DebugPrintReturn(1454. '  +1 indent: '.ind)
 	    endif
 
-	    if b:PHP_IndentFunctionParameters && last_line =~ s:multilineFunctionCall && last_line !~ s:structureHead && last_line !~ s:arrayDecl
-		let ind = ind + b:PHP_IndentFunctionParameters * shiftwidth()
+	    if b:PHP_IndentFunctionCallParameters && last_line =~ s:multilineFunctionCall && last_line !~ s:structureHead && last_line !~ s:arrayDecl
+		let ind = ind + b:PHP_IndentFunctionCallParameters * shiftwidth()
 	    endif
 
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
