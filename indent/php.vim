@@ -47,6 +47,7 @@
 "			- Implement feature request #71: added option PHP_IndentFunctionParameters to be set to the number of
 "			  additional indents you want for your function parameters.
 "			- Fix #60 where multiline-string declarations endings with nothing else before would break indentation.
+"			- Fix unreported issue where a comment ending with a ', " or ` would stop indentation after this line.
 "
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
 "			  identifiers were treated as here doc ending indentifiers and set at column 0.
@@ -1218,7 +1219,7 @@ function! GetPhpIndent()
 	    endif
 
 	    " was last line a very bad idea? (multiline string definition)
-	elseif last_line =~ '^[^''"`]\+[''"`]$' " a string identifier with nothing after it and no other string identifier before
+	elseif last_line =~ '^[^''"`]\+[''"`]$' && lastline !~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)' " a string identifier with nothing after it and no other string identifier before
 	    " DEBUG call DebugPrintReturn( 'mls dcl')
 	    let b:InPHPcode = -1
 	    let b:InPHPcode_tofind = substitute( last_line, '^.*\([''"`]\).*$', '^[^\1]*\1[;,]$', '')
