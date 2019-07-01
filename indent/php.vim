@@ -46,6 +46,7 @@
 "			  improved in the last 15 years...
 "			- Implement feature request #71: added option PHP_IndentFunctionParameters to be set to the number of
 "			  additional indents you want for your function parameters.
+"			- Fix #60 where multiline-string declarations endings with nothing else before would break indentation.
 "
 " Changes: 1.68         - Fix #68: end(if|for|foreach|while|switch)
 "			  identifiers were treated as here doc ending indentifiers and set at column 0.
@@ -582,6 +583,7 @@ function! GetLastRealCodeLNum(startline) " {{{
     endif
 
     while lnum > 1
+		" DEBUG call DebugPrintReturn('587: in while' )
 	let lnum = prevnonblank(lnum)
 	let lastline = getline(lnum)
 
@@ -589,12 +591,16 @@ function! GetLastRealCodeLNum(startline) " {{{
 	" everything as php
 	if b:InPHPcode_and_script && lastline =~ '?>\s*$'
 	    let lnum = lnum - 1
+		" DEBUG call DebugPrintReturn('593' )
 	elseif lastline =~ '^\s*?>.*<?\%(php\)\=\s*$'
 	    let lnum = lnum - 1
+		" DEBUG call DebugPrintReturn('596' )
 	elseif lastline =~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)'
 	    " if line is under comment
 	    let lnum = lnum - 1
+		" DEBUG call DebugPrintReturn('592' )
 	elseif lastline =~ '\*/\s*$'
+		" DEBUG call DebugPrintReturn('602' )
 	    " skip multiline comments
 	    call cursor(lnum, 1)
 	    if lastline !~ '^\*/'
@@ -610,11 +616,14 @@ function! GetLastRealCodeLNum(startline) " {{{
 		" do the job again on the line before (a comment can hide another...)
 		let lnum = lnum - 1
 	    else
+		" DEBUG call DebugPrintReturn('613: break' )
+		
 		break
 	    endif
 
 
 	elseif lastline =~? '\%(//\s*\|?>.*\)\@<!<?\%(php\)\=\s*$\|^\s*<script\>'
+		" DEBUG call DebugPrintReturn('625' )
 	    " skip non php code
 
 	    while lastline !~ '\(<?.*\)\@<!?>' && lnum > 1
@@ -625,6 +634,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 		" if line contains nothing but end tag
 		let lnum = lnum - 1
 	    else
+		" DEBUG call DebugPrintReturn('630: break' )
 		break
 		" else there is something important before the ?>
 	    endif
@@ -632,12 +642,14 @@ function! GetLastRealCodeLNum(startline) " {{{
 
 	    " Manage "here document" tags
 	elseif lastline =~? '^\a\w*;\=$' && lastline !~? s:notPhpHereDoc
+		" DEBUG call DebugPrintReturn('644' )
 	    " match the end of a heredoc
 	    let tofind=substitute( lastline, '\(\a\w*\);\=', '<<<\\s*[''"]\\=\1[''"]\\=$', '')
 	    while getline(lnum) !~? tofind && lnum > 1
 		let lnum = lnum - 1
 	    endwhile
-	elseif lastline =~ '^[^''"`]*[''"`][;,]'.s:endline && IslinePHP(lnum, "") == "SpecStringEntrails"
+	elseif lastline =~ '^\s*[''"`][;,]' || (lastline =~ '^[^''"`]*[''"`][;,]'.s:endline && IslinePHP(lnum, "") == "SpecStringEntrails")
+		" DEBUG call DebugPrintReturn('651' )
 	    " match end of multiline strings horrors
 
 	    let tofind=substitute( lastline, '^.*\([''"`]\)[;,].*$', '^[^\1]\\+[\1]$\\|^[^\1]\\+[=([]\\s*[\1]', '')
@@ -650,6 +662,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    " DEBUG call DebugPrintReturn('trylnum ' . trylnum . ' --- lastline: ' . lastline )
 	    if trylnum == 1
 		" we have failed... let things be.
+		" DEBUG call DebugPrintReturn('656: break' )
 		break
 	    else
 		" we have found the start of this awful multiline horror
@@ -664,6 +677,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 
 		    if trylnum == 1
 			" we have failed... let things be.
+			" DEBUG call DebugPrintReturn('671: break' )
 			break
 		    end
 		end
@@ -671,6 +685,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    end
 	else
 	    " if none of these were true then we are done
+	    " DEBUG call DebugPrintReturn('679: break' )
 	    break
 	endif
     endwhile
@@ -960,7 +975,7 @@ function! IslinePHP (lnum, tofind) " {{{
 
     " don't see string content as php
     if synname ==? 'phpStringSingle' || synname ==? 'phpStringDouble' || synname ==? 'phpBacktick'
-	if cline !~ '^\s*[''"`]'
+	if cline !~ '^\s*[''"`]' " ??? XXX
 	    return "SpecStringEntrails"
 	else
 	    return synname
@@ -1362,9 +1377,9 @@ function! GetPhpIndent()
     " if optimized mode is active and nor current or previous line are an 'else'
     " or the end of a possible bracketless thing then indent the same as the previous
     " line
-    if last_line =~ '[;}]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase
+    if last_line =~ '[;}]'.endline && last_line !~ '^[)\]]' && last_line !~# s:defaultORcase && last_line !~ '^\s*[''"`][;,]'
 	if ind==b:PHP_default_indenting
-	    " DEBUG call DebugPrintReturn(1034)
+	    " DEBUG call DebugPrintReturn(1034 . 'll: ' . last_line)
 	    " if no indentation for the previous line
 	    return b:PHP_default_indenting + addSpecial
 	elseif b:PHP_indentinghuge && ind==b:PHP_CurrentIndentLevel && cline !~# '^\s*\%(else\|\%(case\|default\).*:\|[})];\=\)' && last_line !~# '^\s*\%(\%(}\s*\)\=else\)' && getline(GetLastRealCodeLNum(lnum - 1))=~';'.endline
