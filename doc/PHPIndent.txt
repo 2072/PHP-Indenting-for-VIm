@@ -123,8 +123,8 @@ Extra indentation levels to add to multi-line function parameters. >
 Function arguments will indent 1 extra level. For two-space indentation: >
 
     function call_the_thing(
-        $with_this,
-        $and_that
+      $with_this,
+      $and_that
     ) {
       $this->do_the_thing(
           $with_this,
@@ -133,3 +133,4 @@ Function arguments will indent 1 extra level. For two-space indentation: >
     } 
 
 vim:tw=78:ts=8:ft=help:norl:
+
