@@ -490,6 +490,12 @@ else
     let b:PHP_IndentFunctionCallParameters = 0
 endif
 
+if exists("PHP_IndentFunctionDeclarationParameters")
+    let b:PHP_IndentFunctionDeclarationParameters = PHP_IndentFunctionDeclarationParameters
+else
+    let b:PHP_IndentFunctionDeclarationParameters = 0
+endif
+
 let b:PHP_lastindented = 0
 let b:PHP_indentbeforelast = 0
 let b:PHP_indentinghuge = 0
@@ -539,7 +545,9 @@ let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\|end\%(if\|while\|for\|foreach\|switch\)\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
-let s:functionDecl = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*(.*'
+let s:functionDeclPrefix = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*('
+let s:functionDecl = s:functionDeclPrefix.'.*'
+let s:multilineFunctionDecl = s:functionDeclPrefix.s:endline
 let s:arrayDecl = '\<array\>\s*(.*'
 let s:multilineFunctionCall = s:PHP_validVariable.'\s*('.s:endline
 " Unstated line?
@@ -1622,6 +1630,10 @@ function! GetPhpIndent()
 
 	    if b:PHP_IndentFunctionCallParameters && last_line =~ s:multilineFunctionCall && last_line !~ s:structureHead && last_line !~ s:arrayDecl
 		let ind = ind + b:PHP_IndentFunctionCallParameters * shiftwidth()
+	    endif
+
+	    if b:PHP_IndentFunctionDeclarationParameters && last_line =~ s:multilineFunctionDecl
+		let ind = ind + b:PHP_IndentFunctionDeclarationParameters * shiftwidth()
 	    endif
 
 	    if b:PHP_BracesAtCodeLevel || b:PHP_vintage_case_default_indent == 1
