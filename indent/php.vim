@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2019 Jully 1st
-" Version:	1.69
+" Last Change:	2019 Jully 7th
+" Version:	1.70
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,10 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.70         - Rename PHP_IndentFunctionParameters to PHP_IndentFunctionCallParameters and
+"			  also implement PHP_IndentFunctionDeclarationParameters.
+"			- Update documentation.  
 "
 " Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on multiline-string declarations ending with a comma.
 "			- Fix #69: Indenting was incorrect for closures with single-line `use` statements.
