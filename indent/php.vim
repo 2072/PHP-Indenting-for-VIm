@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2019 Jully 21st
-" Version:	1.70
+" Last Change:	2020 January 12th
+" Version:	1.71
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.71         - Fix #75 where the indent script would hang on
+"			  some multi-line quoted strings.
 "
 " Changes: 1.70         - Rename PHP_IndentFunctionParameters to PHP_IndentFunctionCallParameters and
 "			  also implement PHP_IndentFunctionDeclarationParameters.
@@ -661,8 +664,8 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    while getline(lnum) !~? tofind && lnum > 1
 		let lnum = lnum - 1
 	    endwhile
-	elseif lastline =~ '^\s*[''"`][;,]' || (lastline =~ '^[^''"`]*[''"`][;,]'.s:endline && IslinePHP(lnum, "") == "SpecStringEntrails")
-		" DEBUG call DebugPrintReturn('651' )
+	elseif lastline =~ '^\s*[''"`][;,]'.s:endline || (lastline =~ '^[^''"`]*[''"`][;,]'.s:endline && IslinePHP(lnum, "") == "SpecStringEntrails")
+		" DEBUG call DebugPrintReturn('651  '  . IslinePHP(lnum, "") . "  " . lastline)
 	    " match end of multiline strings horrors
 
 	    let tofind=substitute( lastline, '^.*\([''"`]\)[;,].*$', '^[^\1]\\+[\1]$\\|^[^\1]\\+[=([]\\s*[\1]', '')
@@ -989,6 +992,7 @@ function! IslinePHP (lnum, tofind) " {{{
     " don't see string content as php
     if synname ==? 'phpStringSingle' || synname ==? 'phpStringDouble' || synname ==? 'phpBacktick'
 	if cline !~ '^\s*[''"`]' " ??? XXX
+	    " DEBUG call DebugPrintReturn(992 . " set SpecStringEntrails")
 	    return "SpecStringEntrails"
 	else
 	    return synname
@@ -1039,7 +1043,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.70"
+    return "1.71"
 endfun
 
 function! GetPhpIndent()
