@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2020 January 12th
-" Version:	1.71
+" Last Change:	2020 March 22nd
+" Version:	1.72
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+" Changes: 1.72         - Fix vim/vim#5722 where it was reported that the
+"			  option PHP_BracesAtCodeLevel had not been working for the last 6 years.
 "
 " Changes: 1.71         - Fix #75 where the indent script would hang on
 "			  some multi-line quoted strings.
@@ -1362,6 +1365,10 @@ function! GetPhpIndent()
 	let ind = indent(FindOpenBracket(v:lnum, 1))
 	let b:PHP_CurrentIndentLevel = b:PHP_default_indenting
 	" DEBUG call DebugPrintReturn("1002 " . FindOpenBracket(v:lnum, 1) )
+	" If the PHP_BracesAtCodeLevel is set then indent the '{'
+	if  b:PHP_BracesAtCodeLevel
+	    let ind = ind + shiftwidth()
+	endif
 	return ind
     endif
 
