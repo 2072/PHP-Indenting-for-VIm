@@ -551,7 +551,7 @@ endif
 " enable debug calls: :%s /" DEBUG \zec//g
 " disable debug calls: :%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g
 
-let s:endline = '\s*\%(//.*\|#.*\|/\*.*\*/\s*\)\=$'
+let s:endline = '\s*\%(//.*\|#\[\@!.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\%(break\|return\|continue\|exit\|die\|else\|end\%(if\|while\|for\|foreach\|switch\)\)'
 let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
@@ -615,7 +615,9 @@ function! GetLastRealCodeLNum(startline) " {{{
 	    let lnum = lnum - 1
 		" DEBUG call DebugPrintReturn('596' )
 	elseif lastline =~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)'
-	    " if line is under comment
+	    " Deliberately treating #[ like a line comment so that subsequent
+	    " inserted lines will be correctly indented inside of blocks
+	    " (e.g. on class methods)
 	    let lnum = lnum - 1
 		" DEBUG call DebugPrintReturn('592' )
 	elseif lastline =~ '\*/\s*$'
@@ -728,7 +730,7 @@ function! Skippmatch2()
 
     " Skip opening /* if they are inside a string or preceded  by a single
     " line comment starter
-    if line =~ "\\([\"']\\).*/\\*.*\\1" || line =~ '\%(//\|#\).*/\*'
+    if line =~ "\\([\"']\\).*/\\*.*\\1" || line =~ '\%(//\|#\[\@!\).*/\*'
 	return 1
     else
 	return 0
@@ -795,7 +797,7 @@ function! StripEndlineComments (line)
     " followed by a number of '"' which is a multiple of 2. The second part
     " removes // that are not followed by any '"'
     " Sorry for this unreadable thing...
-    return substitute(a:line,"\\(//\\|#\\)\\(\\(\\([^\"']*\\([\"']\\)[^\"']*\\5\\)\\+[^\"']*$\\)\\|\\([^\"']*$\\)\\)",'','')
+    return substitute(a:line,"\\(//\\|#\[\@!\\)\\(\\(\\([^\"']*\\([\"']\\)[^\"']*\\5\\)\\+[^\"']*$\\)\\|\\([^\"']*$\\)\\)",'','')
 endfun
 
 function! FindArrowIndent (lnum)  " {{{
@@ -1024,7 +1026,10 @@ function! ResetPhpOptions()
 	if b:PHP_autoformatcomment
 
 	    " Set the comment setting to something correct for PHP
-	    setlocal comments=s1:/*,mb:*,ex:*/,://,:#
+	    " Note that in php 8.0, #[ is used as the start of an attribute,
+	    " which is not actually a comment but the 'f:#[' override is 
+	    " added to avoid incorrectly completing it.
+	    setlocal comments=s1:/*,mb:*,ex:*/,://,f:#[,:#
 
 	    " disable Auto-wrap of text
 	    setlocal formatoptions-=t
@@ -1238,7 +1243,7 @@ function! GetPhpIndent()
 	    endif
 
 	    " was last line a very bad idea? (multiline string definition)
-	elseif last_line =~ '^[^''"`]\+[''"`]$' && last_line !~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)' " a string identifier with nothing after it and no other string identifier before
+	elseif last_line =~ '^[^''"`]\+[''"`]$' && last_line !~ '^\s*\%(//\|#\[\@!\|/\*.*\*/\s*$\)' " a string identifier with nothing after it and no other string identifier before
 	    " DEBUG call DebugPrintReturn( 'mls dcl')
 	    let b:InPHPcode = -1
 	    let b:InPHPcode_tofind = substitute( last_line, '^.*\([''"`]\).*$', '^[^\1]*\1[;,]$', '')
@@ -1274,7 +1279,7 @@ function! GetPhpIndent()
     " Align correctly multi // or # lines
     " Indent successive // or # comment the same way the first is {{{
     let addSpecial = 0
-    if cline =~ '^\s*\%(//\|#\|/\*.*\*/\s*$\)'
+    if cline =~ '^\s*\%(//\|#\[\@!\|/\*.*\*/\s*$\)'
 	let addSpecial = b:PHP_outdentSLComments
 	if b:PHP_LastIndentedWasComment == 1
 	    " DEBUG call DebugPrintReturn(1031)
