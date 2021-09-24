@@ -537,7 +537,7 @@ setlocal nolisp
 setlocal indentexpr=GetPhpIndent()
 setlocal indentkeys=0{,0},0),0],:,!^F,o,O,e,*<Return>,=?>,=<?,=*/
 
-
+let b:undo_indent = "setl ai< cin< inde< indk< lisp< si<"
 
 let s:searchpairflags = 'bWr'
 
