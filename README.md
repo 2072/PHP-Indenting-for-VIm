@@ -31,6 +31,6 @@ features (see the [change log](https://github.com/2072/vim-syntax-for-PHP/commit
  2. Clone the repository under your `~/.vim/bundle/` directory:
 
          cd ~/.vim/bundle
-         git clone git@github.com:2072/PHP-Indenting-for-VIm.git
+         git clone https://github.com/2072/PHP-Indenting-for-VIm.git
 
 
