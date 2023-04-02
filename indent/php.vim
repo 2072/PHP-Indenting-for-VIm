@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2021 July 4th
-" Version:	1.73
+" Last Change:	2023 April 2nd
+" Version:	1.74
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,9 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.74         - Fix #86: Add support for `match` expression.
 "
 "
 " Changes: 1.73         - Fix #77 where multi line strings and true/false
@@ -558,8 +561,8 @@ endif
 
 let s:endline = '\s*\%(//.*\|#\[\@!.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
-let s:notPhpHereDoc = '\<\%(break\|return\|continue\|exit\|die\|true\|false\|elseif\|else\|end\%(if\|while\|for\|foreach\|switch\)\)\>'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
+let s:notPhpHereDoc = '\<\%(break\|return\|continue\|exit\|die\|true\|false\|elseif\|else\|end\%(if\|while\|for\|foreach\|match\|switch\)\)\>'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|match\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
 let s:functionDeclPrefix = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*('
 let s:functionDecl = s:functionDeclPrefix.'.*'
 let s:multilineFunctionDecl = s:functionDeclPrefix.s:endline
@@ -579,7 +582,8 @@ let s:unstated = '\%(^\s*'.s:blockstart.'.*)\|\%(//.*\)\@<!\<e'.'lse\>\)'.s:endl
 
 let s:terminated = '\%(\%(;\%(\s*\%(?>\|}\)\)\=\|<<<\s*[''"]\=\a\w*[''"]\=$\|^\s*}\|^\s*'.s:PHP_validVariable.':\)'.s:endline.'\)'
 let s:PHP_startindenttag = '<?\%(.*?>\)\@!\|<script[^>]*>\%(.*<\/script>\)\@!'
-let s:structureHead = '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline . '\|\<new\s\+class\>'
+let s:matchStart = 'match\s*(\s*\$\?'.s:PHP_validVariable.'\s*)\s*{'. s:endline
+let s:structureHead = '^\s*\%(' . s:blockstart . '\)\|'. s:functionDecl . s:endline . '\|\<new\s\+class\>\|' . s:matchStart
 
 
 let s:escapeDebugStops = 0
@@ -1699,7 +1703,7 @@ function! GetPhpIndent()
 	    "
 	    " we handle "use" block statement specifically for now...
 
-	elseif AntepenultimateLine =~ '{'.endline && AntepenultimateLine !~? '^\s*use\>' || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
+	elseif AntepenultimateLine =~ '{'.endline && AntepenultimateLine !~? '^\s*use\>' && AntepenultimateLine !~? s:matchStart || AntepenultimateLine =~ terminated || AntepenultimateLine =~# s:defaultORcase
 	    let ind = ind + shiftwidth()
 	    " DEBUG call DebugPrintReturn(1422 . ' AntepenultimateLine:  ' . AntepenultimateLine . '   lastline: ' . last_line . ' LastLineClosed: ' . LastLineClosed)
 	endif
