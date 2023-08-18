@@ -805,8 +805,12 @@ function! StripEndlineComments (line)
     " the first part of the regex removes // from the end of line when they are
     " followed by a number of '"' which is a multiple of 2. The second part
     " removes // that are not followed by any '"'
-    " Sorry for this unreadable thing...
-    return substitute(a:line,"\\(//\\|#\[\@!\\)\\(\\(\\([^\"']*\\([\"']\\)[^\"']*\\5\\)\\+[^\"']*$\\)\\|\\([^\"']*$\\)\\)",'','')
+
+    let cleaned = substitute(a:line,'\v(//|#\[\@!)((([^"'']*(["''])[^"'']*\5)+[^"'']*$)|([^"'']*$))','','')
+    if cleaned != a:line
+	" DEBUG call DebugPrintReturn(811 . " cleaned line: " . cleaned)
+    endif
+    return cleaned
 endfun
 
 function! FindArrowIndent (lnum)  " {{{
