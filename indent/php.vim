@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2023 April 2nd
-" Version:	1.74
+" Last Change:	2023 August 18th
+" Version:	1.75
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,15 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.75         - Fix #87: The indent optimization was causing wrong
+"			  indentation of lines preceded by a line ending with
+"			  '}' when preceded by non white characters.
+"			- Fix long standing non-reported regex escaping issue
+"			  in cleaning end of line comments function. This
+"			  should help fixing some other unreported issues when
+"			  parts of codes are commented out at ends of lines...
 "
 "
 " Changes: 1.74         - Fix #86: Add support for `match` expression.

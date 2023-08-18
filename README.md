@@ -35,7 +35,7 @@ features (see the [change log](https://github.com/2072/vim-syntax-for-PHP/commit
 
 ### Debugging
 This script uses a lot of heuristics to do its job, when debugging you need to do 2 things:
-- Comment out the `finish` in (so that you can reload the indent script after a modification by just reloading your test `.php` file):
+- Comment out the `finish` here (search for 'XXX'):
 
 ```viml
 " Only define the functions once per Vim session.
@@ -45,7 +45,12 @@ if exists("*GetPhpIndent")
 endif
 ```
 
-- Enable the debug print by executing the command: `:%s /" DEBUG \zec//g`  (you can disable them with `:%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g`)
+Doing this allows you to easily reload the indent script after a modification by just reloading your test `.php` file.
+
+- Enable the step debug printing by executing the command: `:%s /" DEBUG \zec//g`.
+This will cause the script to pause at key steps, look for the number printed and search it in the indent script.
+You can add more debug call, the convention is to use the current line number as the hint + any other relevant useful information.
+You can disable them again with `:%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g`.
 
 Then try to indent the line causing issues and follow what is happening to find out which part of the script is causing the issue.
 You can disable the print function interruptions by hitting the `<Del>` key of your keyboard.
