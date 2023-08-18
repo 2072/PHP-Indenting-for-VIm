@@ -1422,7 +1422,7 @@ function! GetPhpIndent()
 	    " DEBUG call DebugPrintReturn(1034 . 'll: ' . last_line)
 	    " if no indentation for the previous line
 	    return b:PHP_default_indenting + addSpecial
-	elseif b:PHP_indentinghuge && ind==b:PHP_CurrentIndentLevel && cline !~# '^\s*\%(else\|\%(case\|default\).*:\|[})];\=\)' && last_line !~# '^\s*\%(\%(}\s*\)\=else\)' && getline(GetLastRealCodeLNum(lnum - 1))=~';'.endline
+	elseif b:PHP_indentinghuge && ind==b:PHP_CurrentIndentLevel && cline !~# '^\s*\%(else\|\%(case\|default\).*:\|[})];\=\)' && last_line !~# '^\s*\%(\%(}\s*\)\=else\)\|^\(\s*\S\+\s*\)\+}'.endline && getline(GetLastRealCodeLNum(lnum - 1))=~';'.endline
 	    " DEBUG call DebugPrintReturn(1037)
 	    return b:PHP_CurrentIndentLevel + addSpecial
 	endif
