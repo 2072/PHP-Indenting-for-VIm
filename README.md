@@ -33,4 +33,25 @@ features (see the [change log](https://github.com/2072/vim-syntax-for-PHP/commit
          cd ~/.vim/bundle
          git clone https://github.com/2072/PHP-Indenting-for-VIm.git
 
+### Debugging
+This script uses a lot of heuristics to do its job, when debugging you need to do 2 things:
+- Comment out the `finish` in (so that you can reload the indent script after a modification by just reloading your test `.php` file):
+
+```viml
+" Only define the functions once per Vim session.
+if exists("*GetPhpIndent")
+    call ResetPhpOptions()
+    finish " XXX -- comment this line for easy dev
+endif
+```
+
+- Enable the debug print by executing the command: `:%s /" DEBUG \zec//g`  (you can disable them with `:%s /^\s*\zs\zecall DebugPrintReturn/" DEBUG /g`)
+
+Then try to indent the line causing issues and follow what is happening to find out which part of the script is causing the issue.
+You can disable the print function interruptions by hitting the `<Del>` key of your keyboard.
+
+Note that the indent script switches to an "optimized mode" when you indent several lines in a row so there can be bugs that only happen in this optimized mode.
+This mode is automatic on the 3rd consecutive line indentation, just indent a line above the line you last indented to switch back to the default mode.
+
+If you make a modification, make sure to run the command `:setlocal debug=msg` to enable vim debug messages.
 
