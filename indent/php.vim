@@ -65,7 +65,7 @@
 "
 " Changes: 1.70         - Rename PHP_IndentFunctionParameters to PHP_IndentFunctionCallParameters and
 "			  also implement PHP_IndentFunctionDeclarationParameters.
-"			- Update documentation.  
+"			- Update documentation.
 "
 " Changes: 1.69         - Fix vim/vim#4562 where Vim would freeze on multiline-string declarations ending with a comma.
 "			- Fix #69: Indenting was incorrect for closures with single-line `use` statements.
@@ -656,7 +656,6 @@ function! GetLastRealCodeLNum(startline) " {{{
 		let lnum = lnum - 1
 	    else
 		" DEBUG call DebugPrintReturn('613: break' )
-		
 		break
 	    endif
 
@@ -835,14 +834,14 @@ function! FindArrowIndent (lnum)  " {{{
     "     - 2.2 It's a non-terminated line or anything else (first '->' or not a chained call)
     "         just return the indent of the previous line + &sw (normal indent)
 
-    let parrentArrowPos = -1
+    let parentArrowPos = -1
     let cursorPos = -1
     let lnum = a:lnum
     while lnum > 1
 	let last_line = getline(lnum)
 	" the simple case
 	if last_line =~ '^\s*->'
-	    let parrentArrowPos = indent(a:lnum)
+	    let parentArrowPos = indent(a:lnum)
 	    " DEBUG call DebugPrintReturn(767 . "FindArrowIndent simple case")
 	    break
 	else
@@ -874,7 +873,7 @@ function! FindArrowIndent (lnum)  " {{{
 		    " on the same line
 		else
 		    " if the () are imbalanced just resort to default
-		    let parrentArrowPos = -1
+		    let parentArrowPos = -1
 		    " DEBUG call DebugPrintReturn(780 . "FindArrowIndent default +&sw (arrow was inside matching ())")
 		    break
 		end
@@ -883,24 +882,24 @@ function! FindArrowIndent (lnum)  " {{{
 	    " the previous line does contain an arrow
 	    if cleanedLnum =~ '->'
 		call cursor(lnum, cursorPos == -1 ? strwidth(cleanedLnum) : cursorPos)
-		let parrentArrowPos = searchpos('->', 'cWb', lnum)[1] - 1
+		let parentArrowPos = searchpos('->', 'cWb', lnum)[1] - 1
 		" DEBUG call DebugPrintReturn(792 . "FindArrowIndent returning arrow searchposition on: " . lnum . "  xxx adjust is " . col("."))
 
 		break
 	    else
-		let parrentArrowPos = -1
+		let parentArrowPos = -1
 		" DEBUG call DebugPrintReturn(808 . "FindArrowIndent default +&sw")
 		break
 	    endif
 	endif
     endwhile
 
-    if parrentArrowPos == -1
-	let parrentArrowPos = indent(lnum) + shiftwidth()
+    if parentArrowPos == -1
+	let parentArrowPos = indent(lnum) + shiftwidth()
     end
 
-    " DEBUG call DebugPrintReturn(818 . "FindArrowIndent returns: " . parrentArrowPos)
-    return parrentArrowPos
+    " DEBUG call DebugPrintReturn(818 . "FindArrowIndent returns: " . parentArrowPos)
+    return parentArrowPos
 endfun "}}}
 
 function! FindTheIfOfAnElse (lnum, StopAfterFirstPrevElse) " {{{
@@ -1051,7 +1050,7 @@ function! ResetPhpOptions()
 
 	    " Set the comment setting to something correct for PHP
 	    " Note that in php 8.0, #[ is used as the start of an attribute,
-	    " which is not actually a comment but the 'f:#[' override is 
+	    " which is not actually a comment but the 'f:#[' override is
 	    " added to avoid incorrectly completing it.
 	    setlocal comments=s1:/*,mb:*,ex:*/,://,f:#[,:#
 
@@ -1075,7 +1074,7 @@ endfunc
 call ResetPhpOptions()
 
 function! GetPhpIndentVersion()
-    return "1.71"
+    return "1.75"
 endfun
 
 function! GetPhpIndent()
