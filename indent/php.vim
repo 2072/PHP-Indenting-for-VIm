@@ -3,7 +3,7 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2024 November 16th
+" Last Change:	2025 November 16th
 " Version:	1.76
 "
 "
