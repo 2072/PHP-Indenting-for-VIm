@@ -3,8 +3,8 @@
 " Author:	John Wellesz <John.wellesz (AT) gmail (DOT) com>
 " URL:		https://www.2072productions.com/vim/indent/php.vim
 " Home:		https://github.com/2072/PHP-Indenting-for-VIm
-" Last Change:	2023 August 18th
-" Version:	1.75
+" Last Change:	2024 November 16th
+" Version:	1.76
 "
 "
 "	Type :help php-indent for available options
@@ -39,6 +39,10 @@
 "
 "	or simply 'let' the option PHP_removeCRwhenUnix to 1 and the script will
 "	silently remove them when VIM load this script (at each bufread).
+"
+"
+" Changes: 1.76         - Fix vim/vim#18739: where mixed syntax style caused
+"			  an editor hang on indenting.
 "
 "
 " Changes: 1.75         - Fix #87: The indent optimization was causing wrong
@@ -655,7 +659,7 @@ function! GetLastRealCodeLNum(startline) " {{{
 		" do the job again on the line before (a comment can hide another...)
 		let lnum = lnum - 1
 	    else
-		" DEBUG call DebugPrintReturn('613: break' )
+		" DEBUG call DebugPrintReturn('613: break ' . lnum )
 		break
 	    endif
 
@@ -1544,24 +1548,29 @@ function! GetPhpIndent()
 		    " if we're on a {}, then there was nothing to skip in the
 		    " first place...
 		    let isSingleLineBlock = 1
+		    " DEBUG call DebugPrintReturn("1547 isSingleLineBlock set for last_line_num " . last_line_num)
 		    continue
 		endif
 
 		let previous_line = getline(last_line_num)
+		" DEBUG call DebugPrintReturn("1551 continue")
 
 		continue
 	    else
-		let isSingleLineBlock = 0
 		" DEBUG call DebugPrintReturn(1230 . " previous_line: " . previous_line)
 		" At this point we know that the previous_line isn't a closing
 		" '}' so we can check if we really are in such a structure.
 
 		" it's not a '}' but it could be an else alone...
-		if getline(last_line_num) =~# '^\s*else\%(if\)\=\>'
+		if getline(last_line_num) =~# '^\s*else\%(if\)\=\>' && !isSingleLineBlock
 		    let last_line_num = FindTheIfOfAnElse(last_line_num, 0)
 		    " re-run the loop (we could find a '}' again)
+		    " DEBUG call DebugPrintReturn("1564 continue, the if is at " . last_line_num)
+		    let isSingleLineBlock = 0
 		    continue
 		endif
+
+		let isSingleLineBlock = 0
 
 		" So now it's ok we can check :-)
 		" A good quality is to have confidence in oneself so to know
