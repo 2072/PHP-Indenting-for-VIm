@@ -144,7 +144,7 @@ endif
 let s:endline = '\s*\%(//.*\|#\[\@!.*\|/\*.*\*/\s*\)\=$'
 let s:PHP_validVariable = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
 let s:notPhpHereDoc = '\<\%(break\|return\|continue\|exit\|die\|true\|false\|elseif\|else\|end\%(if\|while\|for\|foreach\|match\|switch\)\)\>'
-let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|match\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
+let s:blockstart = '\%(\%(\%(}\s*\)\=else\%(\s\+\)\=\)\=if\>\|\%(}\s*\)\?else\>\|do\>\|while\>\|match\>\|switch\>\|case\>\|default\>\|for\%(each\)\=\>\|declare\>\|class\>\|enum\>\|trait\>\|\%()\s*\)\=use\>\|interface\>\|abstract\>\|final\>\|try\>\|\%(}\s*\)\=catch\>\|\%(}\s*\)\=finally\>\)'
 let s:functionDeclPrefix = '\<function\>\%(\s\+&\='.s:PHP_validVariable.'\)\=\s*('
 let s:functionDecl = s:functionDeclPrefix.'.*'
 let s:multilineFunctionDecl = s:functionDeclPrefix.s:endline
